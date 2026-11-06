@@ -1,0 +1,60 @@
+{
+  "groups": [
+    {
+      "id": 1,
+      "name": "\u0648\u0627\u0634\u0631 \u0635\u0646\u0639\u062A\u06CC",
+      "code": "WASHER-1793993219",
+      "parentId": null
+    }
+  ],
+  "specifications": [
+    {
+      "id": 1,
+      "productGroupId": 1,
+      "name": "\u062C\u0646\u0633",
+      "code": "MATERIAL-1793993277",
+      "dataType": 0,
+      "isRequired": true,
+      "isVariantKey": true
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "productGroupId": 1,
+      "sku": "WS-1793993277",
+      "name": "\u0648\u0627\u0634\u0631 \u0641\u0648\u0644\u0627\u062F\u06CC \u062A\u0633\u062A",
+      "baseUnit": "\u0639\u062F\u062F",
+      "quantity": 127
+    }
+  ],
+  "movements": [
+    {
+      "id": 1,
+      "productId": 1,
+      "type": 0,
+      "quantity": 10,
+      "unit": "\u0639\u062F\u062F",
+      "reason": "\u0648\u0631\u0648\u062F \u062A\u0633\u062A",
+      "createdAt": "2026-11-06T19:28:01.9431501+00:00"
+    },
+    {
+      "id": 2,
+      "productId": 1,
+      "type": 1,
+      "quantity": 3,
+      "unit": "\u0639\u062F\u062F",
+      "reason": "\u062E\u0631\u0648\u062C \u062A\u0633\u062A",
+      "createdAt": "2026-11-06T19:28:02.2365722+00:00"
+    },
+    {
+      "id": 3,
+      "productId": 1,
+      "type": 0,
+      "quantity": 120,
+      "unit": "\u0639\u062F\u062F",
+      "reason": "\u0627\u0632 \u0627\u0646\u0628\u0627\u0631 \u062F\u0648\u0645",
+      "createdAt": "2026-11-06T19:30:59.6496518+00:00"
+    }
+  ]
+}

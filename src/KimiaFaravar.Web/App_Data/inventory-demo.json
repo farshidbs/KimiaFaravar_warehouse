@@ -1,0 +1,61 @@
+﻿{
+    "users":  [
+                  {
+                      "id":  1,
+                      "aliasName":  "مدیر سیستم",
+                      "username":  "admin",
+                      "passwordHash":  "AQAAAAIAAYagAAAAEDB3z3WHw8F/oJaEhW9tqbUhwZGcEWXdnyPTsdvPtI001j7KL5NOPRHSwH0/bxQgcw==",
+                      "roleId":  1,
+                      "enabled":  true
+                  }
+              ],
+    "roles":  [
+                  {
+                      "id":  1,
+                      "code":  "CEO",
+                      "name":  "مدیرعامل"
+                  },
+                  {
+                      "id":  2,
+                      "code":  "WarehouseManager",
+                      "name":  "مدیر انبار"
+                  },
+                  {
+                      "id":  3,
+                      "code":  "WarehouseOperator",
+                      "name":  "کاربر انبار"
+                  },
+                  {
+                      "id":  4,
+                      "code":  "InternalSales",
+                      "name":  "همکاران فروش داخلی"
+                  },
+                  {
+                      "id":  5,
+                      "code":  "MarketDistribution",
+                      "name":  "همکاران توزیع بازار"
+                  }
+              ],
+    "permissions":  [
+                        "Users.Manage",
+                        "Roles.Manage",
+                        "Products.View",
+                        "Products.Manage",
+                        "ProductGroups.Manage",
+                        "Specifications.Manage",
+                        "Inventory.View",
+                        "Inventory.ViewAll",
+                        "Inventory.Receive",
+                        "Inventory.Dispatch",
+                        "Inventory.DispatchDirect",
+                        "Inventory.DispatchApprove",
+                        "Inventory.Documents.EditPosted",
+                        "Inventory.Reserve",
+                        "Inventory.Import",
+                        "Reports.View",
+                        "Reports.ViewAll"
+                    ],
+    "sessions":  [
+
+                 ]
+}
