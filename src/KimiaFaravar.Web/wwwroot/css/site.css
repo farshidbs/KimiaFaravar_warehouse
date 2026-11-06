@@ -1,31 +1,18 @@
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
-body {
-  margin-bottom: 60px;
-}
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}
+:root { --kf-bg: #f5f7fb; --kf-primary: #165d72; }
+html { font-size: 15px; min-height: 100%; }
+body { background: var(--kf-bg); color: #213547; font-family: Tahoma, 'Segoe UI', sans-serif; line-height: 1.7; }
+.app-header { position: relative; z-index: 2; }
+.navbar-brand { color: var(--kf-primary); }
+.nav-link { color: #475467; }
+.nav-link:hover { color: var(--kf-primary); }
+h1, h2, h3 { letter-spacing: -.01em; }
+.card { border-radius: 1rem; }
+.form-control, .form-select { min-height: 2.75rem; border-radius: .65rem; }
+.form-control:focus, .form-select:focus { border-color: var(--kf-primary); box-shadow: 0 0 0 .2rem rgba(22,93,114,.13); }
+.btn { border-radius: .65rem; }
+.btn-primary, .nav-pills .nav-link.active { background-color: var(--kf-primary); border-color: var(--kf-primary); }
+.btn-primary:hover { background-color: #10495a; border-color: #10495a; }
+.table thead th { background: #f7f9fb; color: #667085; font-weight: 600; white-space: nowrap; }
+.badge { font-weight: 500; padding: .45rem .6rem; }
+#dynamic-specifications { min-height: 3.5rem; }
+@media(max-width: 576px) { .container { padding-inline: 1rem; } .card-body { padding: 1.15rem !important; } .nav-pills .nav-link { font-size: .9rem; padding: .55rem .7rem; } }

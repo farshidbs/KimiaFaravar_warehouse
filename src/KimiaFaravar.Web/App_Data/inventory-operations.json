@@ -5,6 +5,18 @@
       "name": "\u0648\u0627\u0634\u0631 \u0635\u0646\u0639\u062A\u06CC",
       "code": "WASHER-1793993219",
       "parentId": null
+    },
+    {
+      "id": 2,
+      "name": "\u0635\u0641\u062D\u0647 \u0641\u0648\u0644\u0627\u062F\u06CC",
+      "code": "FOLADISAFE",
+      "parentId": null
+    },
+    {
+      "id": 3,
+      "name": "\u0635\u0641\u062D\u0647 \u0641\u0648\u0644\u0627\u062F\u06CC \u0646\u0648\u0639 2",
+      "code": "SFLD2",
+      "parentId": 2
     }
   ],
   "specifications": [
@@ -16,8 +28,27 @@
       "dataType": 0,
       "isRequired": true,
       "isVariantKey": true
+    },
+    {
+      "id": 2,
+      "productGroupId": 2,
+      "name": "\u0627\u0646\u062F\u0627\u0632\u0647",
+      "code": "SIZE",
+      "dataType": 0,
+      "isRequired": true,
+      "isVariantKey": true
+    },
+    {
+      "id": 3,
+      "productGroupId": 2,
+      "name": "\u0627\u0646\u062F\u0627\u0632\u0647 2",
+      "code": "SIZE2",
+      "dataType": 0,
+      "isRequired": true,
+      "isVariantKey": false
     }
   ],
+  "specificationOptions": [],
   "products": [
     {
       "id": 1,
@@ -25,7 +56,53 @@
       "sku": "WS-1793993277",
       "name": "\u0648\u0627\u0634\u0631 \u0641\u0648\u0644\u0627\u062F\u06CC \u062A\u0633\u062A",
       "baseUnit": "\u0639\u062F\u062F",
-      "quantity": 127
+      "quantity": 27
+    },
+    {
+      "id": 2,
+      "productGroupId": 2,
+      "sku": "TEST11",
+      "name": "test1",
+      "baseUnit": "\u0645\u062A\u0631",
+      "quantity": 12
+    },
+    {
+      "id": 3,
+      "productGroupId": 2,
+      "sku": "FOLADINAB",
+      "name": "\u0635\u0641\u062D\u0647 \u0641\u0648\u0644\u0627\u062F\u06CC \u0646\u0627\u0628",
+      "baseUnit": "\u0645\u062A\u0631",
+      "quantity": 100
+    },
+    {
+      "id": 4,
+      "productGroupId": 3,
+      "sku": "FLSN2",
+      "name": "\u0635\u0641\u062D\u0647 \u0641\u0648\u0644\u0627\u062F\u06CC \u0646\u0648\u0639 2 \u0627\u0635\u0644\u06CC",
+      "baseUnit": "\u0645\u062A\u0631",
+      "quantity": 0
+    }
+  ],
+  "productValues": [
+    {
+      "productId": 3,
+      "specificationId": 2,
+      "value": "25"
+    },
+    {
+      "productId": 3,
+      "specificationId": 3,
+      "value": "45"
+    },
+    {
+      "productId": 4,
+      "specificationId": 2,
+      "value": "10"
+    },
+    {
+      "productId": 4,
+      "specificationId": 3,
+      "value": "1000"
     }
   ],
   "movements": [
@@ -55,6 +132,33 @@
       "unit": "\u0639\u062F\u062F",
       "reason": "\u0627\u0632 \u0627\u0646\u0628\u0627\u0631 \u062F\u0648\u0645",
       "createdAt": "2026-11-06T19:30:59.6496518+00:00"
+    },
+    {
+      "id": 4,
+      "productId": 2,
+      "type": 0,
+      "quantity": 12,
+      "unit": "\u0645\u062A\u0631",
+      "reason": "\u0648\u0631\u0648\u062F\u06CC",
+      "createdAt": "2026-11-06T20:35:32.3445953+00:00"
+    },
+    {
+      "id": 5,
+      "productId": 1,
+      "type": 1,
+      "quantity": 100,
+      "unit": "\u0639\u062F\u062F",
+      "reason": "\u0627\u0646\u0628\u0627\u0631 \u062F\u0648\u0645",
+      "createdAt": "2026-11-06T20:35:48.9920176+00:00"
+    },
+    {
+      "id": 6,
+      "productId": 3,
+      "type": 0,
+      "quantity": 100,
+      "unit": "\u0645\u062A\u0631",
+      "reason": "\u0634\u0631\u062D \u062A\u0633\u062A",
+      "createdAt": "2026-11-06T20:37:52.5310071+00:00"
     }
   ]
 }

@@ -1,13 +1,102 @@
 @using KimiaFaravar.Application.Inventory
+@using System.Globalization
 @model KimiaFaravar.Web.Models.CatalogPageViewModel
-@{ ViewData["Title"] = "کاتالوگ محصولات"; }
-<div dir="rtl" class="container py-4">
- <div class="d-flex justify-content-between mb-4"><div><h1 class="h3">گروه‌ها، مشخصات و محصولات</h1><p class="text-muted">تعریف ساختار پویای کاتالوگ</p></div><a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary align-self-start">داشبورد</a></div>
- @if(TempData["Success"] is string success){<div class="alert alert-success">@success</div>} @if(TempData["Error"] is string error){<div class="alert alert-danger">@error</div>}
- <div class="row g-3">
-  <div class="col-lg-4"><div class="card h-100"><div class="card-header fw-bold">گروه جدید</div><div class="card-body"><form asp-action="CreateGroup" method="post"><label class="form-label">نام</label><input name="name" class="form-control mb-3" required><label class="form-label">کد</label><input name="code" class="form-control mb-3" required><label class="form-label">گروه والد</label><select name="parentId" class="form-select mb-3"><option value="">بدون والد</option>@foreach(var g in Model.Data.Groups){<option value="@g.Id">@g.Name</option>}</select><button class="btn btn-primary w-100">ثبت گروه</button></form></div></div></div>
-  <div class="col-lg-4"><div class="card h-100"><div class="card-header fw-bold">مشخصه جدید</div><div class="card-body"><form asp-action="CreateSpecification" method="post"><label class="form-label">گروه</label><select name="productGroupId" class="form-select mb-3" required>@foreach(var g in Model.Data.Groups){<option value="@g.Id">@g.Name</option>}</select><label class="form-label">نام و کد</label><div class="input-group mb-3"><input name="name" class="form-control" placeholder="مثلاً جنس" required><input name="code" class="form-control" placeholder="MATERIAL" required></div><label class="form-label">نوع داده</label><select name="dataType" class="form-select mb-3" asp-items="Html.GetEnumSelectList<SpecificationDataType>()"></select><div class="form-check"><input name="isRequired" value="true" type="checkbox" class="form-check-input"><label class="form-check-label">اجباری</label></div><div class="form-check mb-3"><input name="isVariantKey" value="true" type="checkbox" class="form-check-input"><label class="form-check-label">کلید تنوع محصول</label></div><button class="btn btn-primary w-100">ثبت مشخصه</button></form></div></div></div>
-  <div class="col-lg-4"><div class="card h-100"><div class="card-header fw-bold">محصول جدید</div><div class="card-body"><form asp-action="CreateProduct" method="post"><label class="form-label">گروه</label><select name="productGroupId" class="form-select mb-3" required>@foreach(var g in Model.Data.Groups){<option value="@g.Id">@g.Name</option>}</select><label class="form-label">نام</label><input name="name" class="form-control mb-3" required><label class="form-label">SKU</label><input name="sku" class="form-control mb-3" required><label class="form-label">واحد پایه</label><select name="baseUnit" class="form-select mb-3"><option>عدد</option><option>کیلوگرم</option><option>متر</option><option>بسته</option><option>رول</option></select><button class="btn btn-success w-100">ثبت محصول</button></form></div></div></div>
- </div>
- <div class="card mt-4"><div class="card-header fw-bold">ساختار ثبت‌شده</div><div class="table-responsive"><table class="table table-striped mb-0"><thead><tr><th>گروه</th><th>کد</th><th>مشخصات</th><th>محصولات</th></tr></thead><tbody>@foreach(var g in Model.Data.Groups){<tr><td>@g.Name</td><td>@g.Code</td><td>@string.Join("، ",Model.Data.Specifications.Where(x=>x.ProductGroupId==g.Id).Select(x=>x.Name))</td><td>@string.Join("، ",Model.Data.Products.Where(x=>x.ProductGroupId==g.Id).Select(x=>x.Name))</td></tr>}</tbody></table></div></div>
+@{
+    ViewData["Title"] = "مدیریت کالا و مشخصات";
+    var groups = Model.Data.Groups.OrderBy(x => x.Name).ToArray();
+    var specifications = Model.Data.Specifications.OrderBy(x => x.Name).ToArray();
+}
+<div class="container py-4" dir="rtl">
+    <div class="d-flex flex-wrap justify-content-between gap-3 align-items-center mb-4">
+        <div><h1 class="h3 fw-bold mb-1">مدیریت کالاها</h1><p class="text-muted mb-0">تعریف گروه، مشخصات و ترکیب دقیق هر کالا</p></div>
+        <a asp-controller="Inventory" asp-action="Index" class="btn btn-outline-primary">بازگشت به انبار</a>
+    </div>
+    @if (TempData["Success"] is string success) { <div class="alert alert-success" role="status">@success</div> }
+    @if (TempData["Error"] is string error) { <div class="alert alert-danger" role="alert">@error</div> }
+
+    <ul class="nav nav-pills mb-3 gap-2" id="catalog-tabs" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#new-product" type="button">ثبت کالای جدید</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#new-group" type="button">گروه‌ها</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#new-spec" type="button">مشخصات</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#new-option" type="button">گزینه‌های مشخصات</button></li>
+    </ul>
+
+    <div class="tab-content">
+        <section class="tab-pane fade show active" id="new-product">
+            <div class="card shadow-sm border-0"><div class="card-body p-4">
+                <h2 class="h5 mb-3">۱. ساخت کالای مستقل</h2>
+                <p class="text-muted small">ابتدا گروه را انتخاب کنید؛ فیلدهای مشخصات از گروه و والدهای آن به‌صورت خودکار نمایش داده می‌شوند.</p>
+                <form asp-action="CreateProduct" method="post" id="product-form">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label" for="product-group">گروه کالا</label>
+                            <select id="product-group" name="productGroupId" class="form-select" required>
+                                <option value="">انتخاب گروه...</option>
+                                @foreach (var group in groups) { <option value="@group.Id">@group.Name (@group.Code)</option> }
+                            </select>
+                        </div>
+                        <div class="col-md-6"><label class="form-label" for="product-name">نام کالا</label><input id="product-name" name="name" class="form-control" maxlength="200" required placeholder="مثلاً واشر استیل قطر ۲۰" /></div>
+                        <div class="col-md-6"><label class="form-label" for="product-sku">کد یکتا / SKU</label><input id="product-sku" name="sku" class="form-control" maxlength="80" required dir="ltr" /></div>
+                        <div class="col-md-6"><label class="form-label" for="product-unit">واحد پایه</label>
+                            <select id="product-unit" name="baseUnit" class="form-select"><option>عدد</option><option>کیلوگرم</option><option>گرم</option><option>متر</option><option>سانتی‌متر</option><option>کارتن</option><option>بسته</option><option>رول</option></select>
+                        </div>
+                    </div>
+                    <hr class="my-4" />
+                    <h3 class="h6 fw-bold">۲. مشخصات اختصاصی این کالا</h3>
+                    <div class="row g-3 mt-1" id="dynamic-specifications" aria-live="polite"><p class="text-muted">برای نمایش مشخصات، گروه را انتخاب کنید.</p></div>
+                    <input type="hidden" name="valuesJson" id="product-values-json" />
+                    <div id="product-form-error" class="alert alert-danger mt-3 d-none" role="alert"></div>
+                    <button type="submit" class="btn btn-primary btn-lg mt-4 px-5">ثبت کالا</button>
+                </form>
+            </div></div>
+        </section>
+        <section class="tab-pane fade" id="new-group"><div class="card border-0 shadow-sm"><div class="card-body p-4">
+            <h2 class="h5">تعریف گروه / زیرگروه</h2>
+            <form asp-action="CreateGroup" method="post" class="row g-3">
+                <div class="col-md-4"><label class="form-label">نام گروه</label><input name="name" class="form-control" required /></div>
+                <div class="col-md-4"><label class="form-label">کد گروه</label><input name="code" class="form-control" dir="ltr" required /></div>
+                <div class="col-md-4"><label class="form-label">گروه والد (اختیاری)</label><select name="parentId" class="form-select"><option value="">گروه اصلی</option>@foreach (var g in groups) { <option value="@g.Id">@g.Name</option> }</select></div>
+                <div class="col-12"><button class="btn btn-primary">ثبت گروه</button></div>
+            </form>
+        </div></div></section>
+        <section class="tab-pane fade" id="new-spec"><div class="card border-0 shadow-sm"><div class="card-body p-4">
+            <h2 class="h5">تعریف مشخصه برای گروه</h2>
+            <form asp-action="CreateSpecification" method="post" class="row g-3">
+                <div class="col-md-4"><label class="form-label">گروه</label><select name="productGroupId" class="form-select" required>@foreach (var g in groups) { <option value="@g.Id">@g.Name</option> }</select></div>
+                <div class="col-md-4"><label class="form-label">نام مشخصه</label><input name="name" class="form-control" placeholder="جنس / قطر / طول" required /></div>
+                <div class="col-md-4"><label class="form-label">کد مشخصه</label><input name="code" class="form-control" dir="ltr" placeholder="MATERIAL" required /></div>
+                <div class="col-md-4"><label class="form-label">نوع داده</label><select name="dataType" class="form-select"><option value="0">متن</option><option value="1">عدد اعشاری</option><option value="2">عدد صحیح</option><option value="3">بله / خیر</option><option value="4">لیست انتخابی</option></select></div>
+                <div class="col-md-4 d-flex align-items-end"><label class="form-check"><input name="isRequired" value="true" class="form-check-input" type="checkbox" /><span class="form-check-label">مقدار اجباری</span></label></div>
+                <div class="col-md-4 d-flex align-items-end"><label class="form-check"><input name="isVariantKey" value="true" class="form-check-input" type="checkbox" /><span class="form-check-label">بخشی از کلید یکتایی کالا</span></label></div>
+                <div class="col-12"><button class="btn btn-primary">ثبت مشخصه</button></div>
+            </form>
+        </div></div></section>
+        <section class="tab-pane fade" id="new-option"><div class="card border-0 shadow-sm"><div class="card-body p-4">
+            <h2 class="h5">افزودن گزینه به مشخصه انتخابی</h2>
+            <p class="text-muted small">مثلاً برای جنس: استیل، مس، تفلون.</p>
+            <form asp-action="CreateSpecificationOption" method="post" class="row g-3">
+                <div class="col-md-6"><label class="form-label">مشخصه از نوع لیست</label><select name="specificationId" class="form-select" required>@foreach (var s in specifications.Where(x => x.DataType == SpecificationDataType.Select)) { <option value="@s.Id">@s.Name — @(groups.FirstOrDefault(g => g.Id == s.ProductGroupId)?.Name)</option> }</select></div>
+                <div class="col-md-6"><label class="form-label">گزینه</label><input name="value" class="form-control" placeholder="استیل" required /></div>
+                <div class="col-12"><button class="btn btn-primary">ثبت گزینه</button></div>
+            </form>
+        </div></div></section>
+    </div>
+
+    <section class="card border-0 shadow-sm mt-4"><div class="card-body">
+        <h2 class="h5 mb-3">کالاهای ثبت‌شده</h2>
+        <div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>SKU</th><th>نام کالا</th><th>گروه</th><th>مشخصات</th><th>واحد</th></tr></thead><tbody>
+        @foreach (var p in Model.Data.Products.OrderByDescending(p => p.Id))
+        {
+            var vals = Model.Data.ProductValues.Where(v => v.ProductId == p.Id).ToArray();
+            <tr><td dir="ltr">@p.Sku</td><td>@p.Name</td><td>@(groups.FirstOrDefault(g => g.Id == p.ProductGroupId)?.Name)</td>
+            <td>@foreach (var val in vals) {
+                var spec = specifications.FirstOrDefault(s => s.Id == val.SpecificationId);
+                var display = spec?.DataType == SpecificationDataType.Select && long.TryParse(val.Value, out var optionId)
+                    ? Model.Data.SpecificationOptions.FirstOrDefault(o => o.Id == optionId)?.Value ?? val.Value
+                    : val.Value;
+                <span class="badge bg-light text-dark border me-1">@(spec?.Name): @display</span>
+            }</td><td>@p.BaseUnit</td></tr>
+        }
+        </tbody></table></div>
+    </div></section>
 </div>
+@section Scripts { <script src="~/js/catalog-specifications.js" asp-append-version="true"></script> }
