@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/KimiaFaravar.Application/KimiaFaravar.Application.csproj" />
+    <Project Path="src/KimiaFaravar.Domain/KimiaFaravar.Domain.csproj" />
+    <Project Path="src/KimiaFaravar.Infrastructure/KimiaFaravar.Infrastructure.csproj" />
+    <Project Path="src/KimiaFaravar.Web/KimiaFaravar.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/KimiaFaravar.Tests/KimiaFaravar.Tests.csproj" />
+  </Folder>
+</Solution>

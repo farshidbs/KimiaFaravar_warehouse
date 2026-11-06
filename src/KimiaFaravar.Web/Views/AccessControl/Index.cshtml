@@ -1,0 +1,17 @@
+@model KimiaFaravar.Web.Models.AccessControlViewModel
+@{ ViewData["Title"] = "نقش‌ها و مجوزها"; }
+<div dir="rtl" class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4"><div><h1 class="h3">نقش‌ها و مجوزها</h1><p class="text-muted mb-0">نمایش نگاشت دسترسی‌ها از منبع داده فعال</p></div><a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">بازگشت</a></div>
+  <div class="accordion" id="roles">
+  @foreach (var role in Model.Roles)
+  {
+    var target = $"role-{role.Id}";
+    <div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#@target"><strong>@role.Name</strong><span class="badge text-bg-light mx-2">@role.Code</span><span class="badge text-bg-primary">@role.Permissions.Count مجوز</span></button></h2>
+      <div id="@target" class="accordion-collapse collapse" data-bs-parent="#roles"><div class="accordion-body d-flex flex-wrap gap-2">
+        @if (role.Permissions.Count == 0) { <span class="text-muted">مجوزی تخصیص داده نشده است.</span> }
+        @foreach (var permission in role.Permissions.OrderBy(x => x.Code)) { <span class="badge text-bg-secondary p-2">@permission.Code</span> }
+      </div></div>
+    </div>
+  }
+  </div>
+</div>
