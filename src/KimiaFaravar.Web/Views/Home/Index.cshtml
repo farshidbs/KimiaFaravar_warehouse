@@ -1,15 +1,18 @@
-@using System.Security.Claims
-@{ ViewData["Title"] = "داشبورد"; var permissions = User.FindAll("permission").Select(x => x.Value).OrderBy(x => x).ToList(); }
-<div dir="rtl" class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <div><h1 class="h3 mb-1">داشبورد انبار کیمیا فرآور</h1><div class="text-muted">نسخه اولیه فاز هویت و دسترسی</div></div>
-    <form asp-controller="Account" asp-action="Logout" method="post"><button class="btn btn-outline-danger">خروج</button></form>
-  </div>
-  <div class="row g-3 mb-4">
-    <div class="col-md-4"><div class="card h-100"><div class="card-body"><div class="text-muted">کاربر</div><div class="fs-4">@User.Identity?.Name</div></div></div></div>
-    <div class="col-md-4"><div class="card h-100"><div class="card-body"><div class="text-muted">نقش</div><div class="fs-4">@User.FindFirstValue(ClaimTypes.Role)</div></div></div></div>
-    <div class="col-md-4"><div class="card h-100 border-primary"><div class="card-body"><div class="text-muted">منبع داده فعال</div><div class="fs-4 text-primary">@ViewBag.StorageProvider</div></div></div></div>
-  </div>
-  <div class="card"><div class="card-header fw-bold">مجوزهای فعال (@permissions.Count)</div><div class="card-body d-flex flex-wrap gap-2">@foreach(var permission in permissions){<span class="badge text-bg-secondary p-2">@permission</span>}</div></div>
-  <div class="mt-4 d-flex flex-wrap gap-2"><a asp-controller="Catalog" asp-action="Index" class="btn btn-success btn-lg">گروه‌ها و محصولات</a><a asp-controller="Inventory" asp-action="Index" class="btn btn-danger btn-lg">ورود و خروج کالا</a><a asp-controller="AccessControl" asp-action="Index" class="btn btn-outline-primary btn-lg">نقش‌ها و مجوزها</a></div>
-</div>
+﻿@using System.Security.Claims
+@using KimiaFaravar.Application.Security
+@{
+ViewData["Title"] = "نمای کلی";
+var permissions = User.FindAll("permission").Select(x => x.Value).OrderBy(x => x).ToList();
+var roleLabel = User.FindFirstValue(ClaimTypes.Role) switch { "CEO" => "مدیرعامل", "WarehouseManager" => "مدیر انبار", "WarehouseOperator" => "کاربر انبار", "InternalSales" => "فروش داخلی", "MarketDistribution" => "توزیع بازار", _ => "کاربر سامانه" };
+}
+<section class="welcome-panel"><div><span class="eyebrow">مدیریت روزانه، ساده‌تر از همیشه</span><h1>@User.Identity?.Name، خوش آمدید.</h1><p>از اینجا به کالاها، موجودی و عملیات انبار دسترسی دارید.</p>
+@if (User.HasClaim("permission", PermissionCodes.InventoryView)) { <a asp-controller="Inventory" asp-action="Index" class="btn btn-primary">مشاهده موجودی و گردش‌ها <span aria-hidden="true">←</span></a> }
+</div><div class="welcome-brand"><img src="~/images/brand/logo-horizontal-640.webp" width="640" height="213" alt="کیمیا فرآور صنعت" /><span>نظم در انبار، اطمینان در کار</span></div></section>
+<div class="overview-grid"><div class="overview-card"><span class="eyebrow">حساب کاربری</span><strong>@User.Identity?.Name</strong><span>فضای کار شخصی شما</span></div><div class="overview-card"><span class="eyebrow">نقش سازمانی</span><strong>@roleLabel</strong><span>دسترسی مطابق مسئولیت شما</span></div><div class="overview-card"><span class="eyebrow">دسترسی‌ها</span><strong>@permissions.Count مجوز فعال</strong><span>امکانات در دسترس این حساب</span></div></div>
+<div class="section-heading"><span class="eyebrow">مسیرهای پرکاربرد</span><h2>امروز از کجا شروع می‌کنید؟</h2></div>
+<div class="quick-actions">
+@foreach (var item in new[] { (Controller: "Inventory", Title: "موجودی و گردش کالا", Description: "مشاهده موجودی، ثبت ورود و خروج و پیگیری گردش‌ها.", Permission: PermissionCodes.InventoryView, Number: "۰۱ / انبار"), (Controller: "Catalog", Title: "کالاها و مشخصات", Description: "تعریف کالا، ساخت گروه‌ها و تنظیم مشخصات اختصاصی.", Permission: PermissionCodes.ProductGroupsManage, Number: "۰۲ / کاتالوگ"), (Controller: "AccessControl", Title: "نقش‌ها و دسترسی‌ها", Description: "مشاهده نقش‌های سازمانی و مجوزهای مربوط به هر نقش.", Permission: PermissionCodes.RolesManage, Number: "۰۳ / مدیریت") }) {
+if (!User.HasClaim("permission", item.Permission)) { continue; }
+<a class="action-card" asp-controller="@item.Controller" asp-action="Index"><span class="action-number">@item.Number</span><h3>@item.Title</h3><p>@item.Description</p><span class="action-link">مشاهده و مدیریت <span aria-hidden="true">←</span></span></a>
+}
+</div><details class="permissions-panel"><summary>مجوزهای حساب شما <span>@permissions.Count مورد</span></summary><div class="d-flex flex-wrap gap-2 pt-3">@foreach (var permission in permissions) { <span class="badge permission-badge" dir="ltr">@permission</span> }</div></details>

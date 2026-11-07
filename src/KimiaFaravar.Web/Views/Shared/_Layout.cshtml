@@ -1,37 +1,31 @@
+﻿@using KimiaFaravar.Application.Security
+@{ var current = ViewContext.RouteData.Values["controller"]?.ToString(); }
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] | انبارداری کیمیا فرآور</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/KimiaFaravar.Web.styles.css" asp-append-version="true" />
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#492783" /><title>@ViewData["Title"] | کیمیا فرآور</title>
+<link rel="icon" href="~/images/brand/favicon.ico" /><link rel="apple-touch-icon" href="~/images/brand/icon-180.png" />
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" /><link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
-    <header class="app-header border-bottom bg-white">
-        <nav class="navbar navbar-expand-lg navbar-light container py-3">
-            <a class="navbar-brand fw-bold" asp-controller="Home" asp-action="Index">کیمیا فرآور <span class="text-muted fs-6 fw-normal">| انبارداری</span></a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#app-menu" aria-controls="app-menu" aria-expanded="false" aria-label="نمایش منو">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="app-menu">
-                <ul class="navbar-nav me-auto gap-lg-2">
-                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">داشبورد</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Inventory" asp-action="Index">موجودی و گردش کالا</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Catalog" asp-action="Index">تعریف کالا</a></li>
-                </ul>
-                @if (User.Identity?.IsAuthenticated == true)
-                {
-                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-flex mt-2 mt-lg-0"><button class="btn btn-outline-secondary btn-sm">خروج</button></form>
-                }
-            </div>
-        </nav>
-    </header>
-    <main class="container pb-5" role="main">@RenderBody()</main>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
-</body>
-</html>
+<a class="skip-link" href="#main-content">رفتن به محتوای اصلی</a>
+<div class="app-shell"><aside class="app-sidebar">
+<a class="brand" asp-controller="Home" asp-action="Index"><img src="~/images/brand/logo-horizontal-320.webp" width="320" height="106" alt="کیمیا فرآور صنعت؛ صفحه اصلی" /></a>
+<div class="sidebar-caption">سامانه مدیریت انبار</div>
+<nav class="sidebar-nav" aria-label="منوی اصلی">
+@foreach (var item in new[] { (Controller: "Home", Title: "نمای کلی", Permission: ""), (Controller: "Inventory", Title: "موجودی و گردش کالا", Permission: PermissionCodes.InventoryView), (Controller: "Catalog", Title: "کالاها و مشخصات", Permission: PermissionCodes.ProductGroupsManage), (Controller: "AccessControl", Title: "نقش‌ها و دسترسی‌ها", Permission: PermissionCodes.RolesManage) }) {
+if (item.Permission.Length > 0 && !User.HasClaim("permission", item.Permission)) { continue; }
+<a class="sidebar-link @(current == item.Controller ? "is-active" : "")" aria-current="@(current == item.Controller ? "page" : null)" asp-controller="@item.Controller" asp-action="Index"><span class="nav-mark" aria-hidden="true"></span>@item.Title</a>
+}
+</nav><div class="sidebar-bottom">کیمیا فرآور صنعت<small>نظم در انبار، اطمینان در کار</small></div>
+</aside><div class="app-workspace">
+<header class="workspace-header"><div><span class="eyebrow">فضای کار کیمیا</span><div class="workspace-title">@ViewData["Title"]</div></div><div class="user-menu"><img src="~/images/brand/icon-64.png" width="40" height="40" alt="" /><span>@User.Identity?.Name</span>
+@if (User.Identity?.IsAuthenticated == true) { <form asp-controller="Account" asp-action="Logout" method="post"><button class="btn btn-light btn-sm">خروج</button></form> }
+</div></header>
+<main id="main-content" class="workspace-main" tabindex="-1">@RenderBody()</main>
+<footer class="workspace-footer">کیمیا فرآور صنعت <span>سامانه یکپارچه مدیریت انبار</span></footer>
+</div></div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script><script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script><script src="~/js/site.js" asp-append-version="true"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body></html>
