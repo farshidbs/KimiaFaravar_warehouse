@@ -5,6 +5,11 @@ using KimiaFaravar.Infrastructure.Persistence;
 using KimiaFaravar.Application.Security;
 using KimiaFaravar.Web.Security;
 using Microsoft.AspNetCore.Authorization;
+using KimiaFaravar.Web.Reporting;
+using QuestPDF.Infrastructure;
+
+QuestPDF.Settings.License = LicenseType.Community;
+QuestPDF.Settings.UseSystemFonts = true;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
@@ -23,6 +28,7 @@ if (builder.Environment.IsDevelopment())
     builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keyDirectory)).SetApplicationName("KimiaFaravar.Inventory");
 }
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IInventoryReportService, InventoryReportService>();
 builder.Services.AddScoped<SessionCookieEvents>();
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(o =>

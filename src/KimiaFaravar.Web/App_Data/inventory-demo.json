@@ -1,61 +1,263 @@
-﻿{
-    "users":  [
-                  {
-                      "id":  1,
-                      "aliasName":  "مدیر سیستم",
-                      "username":  "admin",
-                      "passwordHash":  "AQAAAAIAAYagAAAAEDB3z3WHw8F/oJaEhW9tqbUhwZGcEWXdnyPTsdvPtI001j7KL5NOPRHSwH0/bxQgcw==",
-                      "roleId":  1,
-                      "enabled":  true
-                  }
-              ],
-    "roles":  [
-                  {
-                      "id":  1,
-                      "code":  "CEO",
-                      "name":  "مدیرعامل"
-                  },
-                  {
-                      "id":  2,
-                      "code":  "WarehouseManager",
-                      "name":  "مدیر انبار"
-                  },
-                  {
-                      "id":  3,
-                      "code":  "WarehouseOperator",
-                      "name":  "کاربر انبار"
-                  },
-                  {
-                      "id":  4,
-                      "code":  "InternalSales",
-                      "name":  "همکاران فروش داخلی"
-                  },
-                  {
-                      "id":  5,
-                      "code":  "MarketDistribution",
-                      "name":  "همکاران توزیع بازار"
-                  }
-              ],
-    "permissions":  [
-                        "Users.Manage",
-                        "Roles.Manage",
-                        "Products.View",
-                        "Products.Manage",
-                        "ProductGroups.Manage",
-                        "Specifications.Manage",
-                        "Inventory.View",
-                        "Inventory.ViewAll",
-                        "Inventory.Receive",
-                        "Inventory.Dispatch",
-                        "Inventory.DispatchDirect",
-                        "Inventory.DispatchApprove",
-                        "Inventory.Documents.EditPosted",
-                        "Inventory.Reserve",
-                        "Inventory.Import",
-                        "Reports.View",
-                        "Reports.ViewAll"
-                    ],
-    "sessions":  [
-
-                 ]
+{
+  "users": [
+    {
+      "id": 1,
+      "aliasName": "\u0645\u062F\u06CC\u0631 \u0633\u06CC\u0633\u062A\u0645",
+      "username": "admin",
+      "passwordHash": "AQAAAAIAAYagAAAAEDOqEAxnlFPzqOEZEfq97FqoL7nvgcGGZX9qtd\u002B0BFL58k456iT5n96v0dxM6xmeTQ==",
+      "roleId": 1,
+      "enabled": true
+    },
+    {
+      "id": 2,
+      "aliasName": "\u0633\u062D\u0631 \u0634\u062C\u0627\u0639\u06CC",
+      "username": "s.shojaei",
+      "passwordHash": "AQAAAAIAAYagAAAAEGiH\u002BTP2DdVOYvfq3N4/hcnbiPW08V1687PTdcsfBKcRU4r1v5Jh27ValBeCwpXw5Q==",
+      "roleId": 4,
+      "enabled": true
+    },
+    {
+      "id": 3,
+      "aliasName": "\u0645\u062F\u06CC\u0631 \u0633\u0627\u0645\u0627\u0646\u0647",
+      "username": "admin2",
+      "passwordHash": "AQAAAAIAAYagAAAAEM/znTnskOZRnH\u002BI6x1GUi3prsCknOUBa\u002B8n2dgn9gHL3s9IKv/HwhjFin\u002BpGV6y0A==",
+      "roleId": 1,
+      "enabled": false
+    }
+  ],
+  "roles": [
+    {
+      "id": 1,
+      "code": "CEO",
+      "name": "\u0645\u062F\u06CC\u0631\u0639\u0627\u0645\u0644"
+    },
+    {
+      "id": 2,
+      "code": "WarehouseManager",
+      "name": "\u0645\u062F\u06CC\u0631 \u0627\u0646\u0628\u0627\u0631"
+    },
+    {
+      "id": 4,
+      "code": "InternalSales",
+      "name": "\u0647\u0645\u06A9\u0627\u0631\u0627\u0646 \u0641\u0631\u0648\u0634 \u062F\u0627\u062E\u0644\u06CC"
+    },
+    {
+      "id": 5,
+      "code": "MarketDistribution",
+      "name": "\u0647\u0645\u06A9\u0627\u0631\u0627\u0646 \u062A\u0648\u0632\u06CC\u0639 \u0628\u0627\u0632\u0627\u0631"
+    }
+  ],
+  "permissions": [
+    "Users.Manage",
+    "Roles.Manage",
+    "Products.View",
+    "Products.Manage",
+    "ProductGroups.Manage",
+    "Specifications.Manage",
+    "Inventory.View",
+    "Inventory.ViewAll",
+    "Inventory.Receive",
+    "Inventory.Dispatch",
+    "Inventory.DispatchDirect",
+    "Inventory.DispatchApprove",
+    "Inventory.Documents.EditPosted",
+    "Inventory.Reserve",
+    "Inventory.Import",
+    "Reports.View",
+    "Reports.ViewAll"
+  ],
+  "sessions": [
+    {
+      "token": "A9C8249B878D7C6D25FC4F215094F60C121B3C98AB5A51B977C28269C037B6B6",
+      "userId": 1,
+      "expiresAt": "2026-11-07T03:41:57.7507518+00:00",
+      "revokedAt": "2026-11-07T19:19:13.4376252+00:00"
+    },
+    {
+      "token": "B3BEF6DBF3FE9A5489F1D1E0592609972F1585C22EB79A0EA2F8802F74C8426E",
+      "userId": 1,
+      "expiresAt": "2026-11-07T04:32:26.100948+00:00",
+      "revokedAt": "2026-11-07T19:19:13.4376281+00:00"
+    },
+    {
+      "token": "0B4EF9A42E4CC18DB9156CA96859CD16BFE0E2A70ADFF0CB311D97F965D7E843",
+      "userId": 1,
+      "expiresAt": "2026-11-07T04:34:25.0730904+00:00",
+      "revokedAt": "2026-11-06T20:38:09.1947071+00:00"
+    },
+    {
+      "token": "256441056695F367318F440BED26A5C519C878C7844CD93178E6D5768C735914",
+      "userId": 1,
+      "expiresAt": "2026-11-07T04:38:27.7158749+00:00",
+      "revokedAt": "2026-11-06T20:41:07.4885454+00:00"
+    },
+    {
+      "token": "2BCBE2BE884C551CCE5455194D37F00D9542BE8A9C376C0CE83044C80CB0F24F",
+      "userId": 1,
+      "expiresAt": "2026-11-07T11:34:30.5050368+00:00",
+      "revokedAt": "2026-11-07T19:19:13.4376294+00:00"
+    },
+    {
+      "token": "35D8FBD3F87D7786BD85C306D735896B18359CBDC4A7CBE49111607A90E99638",
+      "userId": 1,
+      "expiresAt": "2026-11-07T11:34:58.4127352+00:00",
+      "revokedAt": "2026-11-07T19:19:13.4376301+00:00"
+    },
+    {
+      "token": "00E369E7D5067DA758F225980AF7CD14156B712460E3B8F93D9B7765E62F9811",
+      "userId": 1,
+      "expiresAt": "2026-11-08T02:14:42.0539146+00:00",
+      "revokedAt": "2026-11-07T19:19:13.4376305+00:00"
+    },
+    {
+      "token": "F9AC6FDE085D016A7297BDAE749402869C08BC249F3FB9EBF896D8F137C96D8C",
+      "userId": 1,
+      "expiresAt": "2026-11-08T02:15:54.0441003+00:00",
+      "revokedAt": "2026-11-07T18:16:46.6444489+00:00"
+    },
+    {
+      "token": "71F67324FB9EFE77EE85AED7C35CD7996DE84E1259FBB5FC9924F9469FB19D0D",
+      "userId": 1,
+      "expiresAt": "2026-11-08T02:17:12.7105976+00:00",
+      "revokedAt": "2026-11-07T19:19:13.4376315+00:00"
+    },
+    {
+      "token": "003F0E07F33DE26A05828204CEC241F61B9578654B9C7D968753A513869F6358",
+      "userId": 1,
+      "expiresAt": "2026-11-08T02:40:43.1392755+00:00",
+      "revokedAt": "2026-11-07T19:19:13.437632+00:00"
+    },
+    {
+      "token": "E6E1AD155F7F24204947F2DD57A9A0446B9288C211219F6CC4F20F5AA99403E3",
+      "userId": 1,
+      "expiresAt": "2026-11-08T02:54:54.720304+00:00",
+      "revokedAt": "2026-11-07T19:06:58.938207+00:00"
+    },
+    {
+      "token": "502BA6490CE5E85930C4FF438C828625BF310300C10ACF9FC3CA9220B9ADAEC1",
+      "userId": 2,
+      "expiresAt": "2026-11-08T03:07:11.150476+00:00",
+      "revokedAt": "2026-11-07T19:07:57.3907361+00:00"
+    },
+    {
+      "token": "FEFD8E5C2B8143F2F48908496C43EEE12EDC0E47A71516C4B62A855976EBAC85",
+      "userId": 1,
+      "expiresAt": "2026-11-08T03:08:07.6730278+00:00",
+      "revokedAt": "2026-11-07T19:18:42.0393691+00:00"
+    },
+    {
+      "token": "8006D0FDF1CB44458EBB09E22FEF27574BF343C2140F9BAA99CE6FDD2F697FA1",
+      "userId": 1,
+      "expiresAt": "2026-11-08T03:18:52.4980649+00:00",
+      "revokedAt": "2026-11-07T19:19:13.437633+00:00"
+    },
+    {
+      "token": "6781F4C5970D6C008C8124B3E8A0CF7F0EA9F4ED77E314420AF7163F1F103BCB",
+      "userId": 1,
+      "expiresAt": "2026-11-08T03:19:23.9589603+00:00",
+      "revokedAt": "2026-11-07T19:28:23.4202813+00:00"
+    },
+    {
+      "token": "24249BA2FCBFD56F945A552A20E481AE82CA3266144CFF5CFF6B4C11417AC8A5",
+      "userId": 1,
+      "expiresAt": "2026-11-08T03:28:35.8513042+00:00",
+      "revokedAt": "2026-11-07T19:43:24.2772464+00:00"
+    },
+    {
+      "token": "5B9ECA3B86C0780408F5023D91FC37E50BD79921CEEA9F9663E598DD6C61CCA0",
+      "userId": 1,
+      "expiresAt": "2026-11-08T03:43:43.6143393+00:00",
+      "revokedAt": "2026-11-07T19:47:08.6771796+00:00"
+    },
+    {
+      "token": "A52883A0B9E22A5B7B9BE2860882BBABFBAB10685B0730872F72B68F13F81E92",
+      "userId": 1,
+      "expiresAt": "2026-11-08T03:47:17.5177341+00:00",
+      "revokedAt": null
+    },
+    {
+      "token": "2C0D08ABDFFA3DBDCEF05455C76C49E3A985EC59BA812659E4BC65BA23061F77",
+      "userId": 1,
+      "expiresAt": "2026-11-08T04:45:04.0889037+00:00",
+      "revokedAt": null
+    },
+    {
+      "token": "3F3F011CD290180C5981E6BFE784532871DEED19EB58E93CF55AEEEFAC1B6B8B",
+      "userId": 1,
+      "expiresAt": "2026-11-08T07:02:09.0310858+00:00",
+      "revokedAt": null
+    },
+    {
+      "token": "2373B6EE11E739607A423B1BB84DE4250C534AC4D9C1E720AD73B8C65F3E4AF9",
+      "userId": 1,
+      "expiresAt": "2026-11-08T11:48:06.0368976+00:00",
+      "revokedAt": null
+    }
+  ],
+  "activities": [
+    {
+      "id": 1,
+      "userId": 1,
+      "aliasName": "\u0645\u062F\u06CC\u0631 \u0633\u06CC\u0633\u062A\u0645",
+      "username": "admin",
+      "action": "Logout",
+      "occurredAt": "2026-11-07T19:28:23.4337154+00:00"
+    },
+    {
+      "id": 2,
+      "userId": 1,
+      "aliasName": "\u0645\u062F\u06CC\u0631 \u0633\u06CC\u0633\u062A\u0645",
+      "username": "admin",
+      "action": "Login",
+      "occurredAt": "2026-11-07T19:28:35.8554263+00:00"
+    },
+    {
+      "id": 3,
+      "userId": 1,
+      "aliasName": "\u0645\u062F\u06CC\u0631 \u0633\u06CC\u0633\u062A\u0645",
+      "username": "admin",
+      "action": "Logout",
+      "occurredAt": "2026-11-07T19:43:24.2868626+00:00"
+    },
+    {
+      "id": 4,
+      "userId": 1,
+      "aliasName": "\u0645\u062F\u06CC\u0631 \u0633\u06CC\u0633\u062A\u0645",
+      "username": "admin",
+      "action": "Login",
+      "occurredAt": "2026-11-07T19:43:43.6143869+00:00"
+    },
+    {
+      "id": 5,
+      "userId": 1,
+      "aliasName": "\u0645\u062F\u06CC\u0631 \u0633\u06CC\u0633\u062A\u0645",
+      "username": "admin",
+      "action": "Login",
+      "occurredAt": "2026-11-07T19:47:17.5234074+00:00"
+    },
+    {
+      "id": 6,
+      "userId": 1,
+      "aliasName": "\u0645\u062F\u06CC\u0631 \u0633\u06CC\u0633\u062A\u0645",
+      "username": "admin",
+      "action": "Login",
+      "occurredAt": "2026-11-07T20:45:04.0949001+00:00"
+    },
+    {
+      "id": 7,
+      "userId": 1,
+      "aliasName": "\u0645\u062F\u06CC\u0631 \u0633\u06CC\u0633\u062A\u0645",
+      "username": "admin",
+      "action": "Login",
+      "occurredAt": "2026-11-07T23:02:09.037025+00:00"
+    },
+    {
+      "id": 8,
+      "userId": 1,
+      "aliasName": "\u0645\u062F\u06CC\u0631 \u0633\u06CC\u0633\u062A\u0645",
+      "username": "admin",
+      "action": "Login",
+      "occurredAt": "2026-11-08T03:48:06.0369574+00:00"
+    }
+  ]
 }

@@ -1,17 +1,74 @@
+﻿@using KimiaFaravar.Web.Formatting
 @model KimiaFaravar.Web.Models.AccessControlViewModel
-@{ ViewData["Title"] = "نقش‌ها و مجوزها"; }
+@{
+    ViewData["Title"] = "کاربران و دسترسی‌ها";
+    var roles = Model.Roles.Where(role => role.IsEnabled).OrderBy(role => role.Name).ToArray();
+}
 <div dir="rtl" class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4"><div><h1 class="h3">نقش‌ها و مجوزها</h1><p class="text-muted mb-0">نمایش نگاشت دسترسی‌ها از منبع داده فعال</p></div><a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">بازگشت</a></div>
-  <div class="accordion" id="roles">
-  @foreach (var role in Model.Roles)
-  {
-    var target = $"role-{role.Id}";
-    <div class="accordion-item"><h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#@target"><strong>@role.Name</strong><span class="badge text-bg-light mx-2">@role.Code</span><span class="badge text-bg-primary">@role.Permissions.Count مجوز</span></button></h2>
-      <div id="@target" class="accordion-collapse collapse" data-bs-parent="#roles"><div class="accordion-body d-flex flex-wrap gap-2">
-        @if (role.Permissions.Count == 0) { <span class="text-muted">مجوزی تخصیص داده نشده است.</span> }
-        @foreach (var permission in role.Permissions.OrderBy(x => x.Code)) { <span class="badge text-bg-secondary p-2">@permission.Code</span> }
-      </div></div>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4"><div><h1 class="h3 mb-1">کاربران، نقش‌ها و دسترسی‌ها</h1><p class="text-muted mb-0">ایجاد حساب، تغییر گروه کاربری و غیرفعال‌سازی منطقی کاربران</p></div><a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">بازگشت</a></div>
+    @if (TempData["Success"] is string success) { <div class="alert alert-success">@success</div> }
+    @if (TempData["Error"] is string error) { <div class="alert alert-danger">@error</div> }
+
+    <div class="card border-0 shadow-sm mb-4"><div class="card-body p-4">
+        <h2 class="h5 mb-3">تعریف کاربر جدید</h2>
+        <form asp-action="CreateUser" method="post" class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="alias-name">نام فارسی</label><input id="alias-name" name="aliasName" class="form-control" maxlength="100" autocomplete="name" required placeholder="مثلاً علی رضایی" /></div>
+            <div class="col-md-6"><label class="form-label" for="new-username">نام کاربری</label><input id="new-username" name="username" class="form-control" maxlength="100" dir="ltr" autocomplete="off" required placeholder="ali.rezaei" /></div>
+            <div class="col-md-6"><label class="form-label" for="new-password">گذرواژه</label><input id="new-password" name="password" type="password" class="form-control" minlength="8" autocomplete="new-password" required /><div class="form-text">حداقل ۸ نویسه</div></div>
+            <div class="col-md-6"><label class="form-label" for="new-role">گروه کاربری</label><select id="new-role" name="roleId" class="form-select" required>@foreach (var role in roles) { <option value="@role.Id">@role.Name</option> }</select></div>
+            <div class="col-12"><button class="btn btn-primary px-4">ایجاد کاربر</button></div>
+        </form>
+    </div></div>
+
+    <div class="card border-0 shadow-sm mb-4"><div class="card-body p-0">
+        <div class="p-4 pb-2 d-flex justify-content-between"><h2 class="h5">کاربران تعریف‌شده</h2><span class="text-muted small">حذف کاربران به‌صورت غیرفعال‌سازی انجام می‌شود.</span></div>
+        <div class="table-responsive"><table class="table table-hover align-middle mb-0"><thead><tr><th>نام فارسی</th><th>نام کاربری</th><th>وضعیت</th><th>گروه کاربری</th><th>عملیات</th></tr></thead><tbody>
+        @foreach (var user in Model.Users) {
+            <tr class="@(!user.IsEnabled ? "table-light text-muted" : "")"><td><strong>@user.AliasName</strong>@if (user.Id == Model.CurrentUserId) { <span class="badge text-bg-info me-2">حساب شما</span> }</td><td dir="ltr">@user.Username</td><td>@if (user.IsEnabled) { <span class="badge text-bg-success">فعال</span> } else { <span class="badge text-bg-secondary">حذف‌شده / غیرفعال</span> }</td><td>
+                @if (user.IsEnabled) { <form asp-action="ChangeRole" method="post" class="d-flex gap-2"><input type="hidden" name="userId" value="@user.Id" /><select name="roleId" class="form-select form-select-sm" aria-label="نقش @user.AliasName">@foreach (var role in roles) { <option value="@role.Id" selected="@(role.Id == user.RoleId)">@role.Name</option> }</select><button class="btn btn-outline-primary btn-sm text-nowrap">تغییر نقش</button></form> } else { <span>@user.RoleName</span> }
+            </td><td>
+                <div class="d-flex flex-wrap gap-2">
+                @if (user.IsEnabled) {
+                    <button type="button" class="btn btn-outline-warning btn-sm js-reset-password" data-bs-toggle="modal" data-bs-target="#resetPasswordModal" data-user-id="@user.Id" data-user-name="@user.AliasName">تغییر گذرواژه</button>
+                    @if (user.Id != Model.CurrentUserId) {
+                        <button type="button" class="btn btn-outline-danger btn-sm js-user-status" data-bs-toggle="modal" data-bs-target="#userStatusModal" data-action="@Url.Action("DisableUser")" data-user-id="@user.Id" data-user-name="@user.AliasName" data-mode="disable">غیرفعال‌سازی</button>
+                    } else { <span class="small text-muted align-self-center">حساب فعلی قابل غیرفعال‌سازی نیست</span> }
+                } else {
+                    <button type="button" class="btn btn-outline-success btn-sm js-user-status" data-bs-toggle="modal" data-bs-target="#userStatusModal" data-action="@Url.Action("EnableUser")" data-user-id="@user.Id" data-user-name="@user.AliasName" data-mode="enable">فعال‌سازی مجدد</button>
+                }
+                </div>
+            </td></tr>
+        }
+        </tbody></table></div>
+    </div></div>
+
+    <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+            <form asp-action="ResetPassword" method="post">
+                <div class="modal-header"><h2 class="modal-title fs-5" id="resetPasswordTitle">تغییر گذرواژه کاربر</h2><button type="button" class="btn-close ms-0" data-bs-dismiss="modal" aria-label="بستن"></button></div>
+                <div class="modal-body"><p>گذرواژه جدید برای <strong id="reset-password-user-name"></strong> را وارد کنید.</p><input type="hidden" id="reset-password-user-id" name="userId" /><label for="admin-new-password" class="form-label">گذرواژه جدید</label><input id="admin-new-password" name="newPassword" type="password" class="form-control" minlength="8" autocomplete="new-password" required /><div class="form-text">حداقل ۸ نویسه؛ همه نشست‌های قبلی کاربر بسته می‌شوند.</div></div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">انصراف</button><button class="btn btn-warning">تغییر گذرواژه</button></div>
+            </form>
+        </div></div>
     </div>
-  }
-  </div>
+    <div class="modal fade" id="userStatusModal" tabindex="-1" aria-labelledby="userStatusTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+            <form id="user-status-form" method="post">@Html.AntiForgeryToken()
+                <div class="modal-header"><h2 class="modal-title fs-5" id="userStatusTitle">تغییر وضعیت کاربر</h2><button type="button" class="btn-close ms-0" data-bs-dismiss="modal" aria-label="بستن"></button></div>
+                <div class="modal-body"><div id="user-status-icon" class="fs-1 text-center mb-2"></div><p id="user-status-message" class="text-center mb-1"></p><p id="user-status-note" class="small text-muted text-center mb-0"></p><input type="hidden" id="status-user-id" name="userId" /></div>
+                <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">انصراف</button><button id="user-status-submit" class="btn">تأیید</button></div>
+            </form>
+        </div></div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4"><div class="card-body p-0">
+        <div class="p-4 pb-2"><h2 class="h5 mb-1">تاریخچه ورود و خروج کاربران</h2><p class="text-muted small mb-0">زمان‌ها در پایگاه داده به‌صورت UTC ذخیره و در این جدول با تاریخ شمسی ایران نمایش داده می‌شوند.</p></div>
+        <div class="table-responsive"><table class="table table-hover mb-0"><thead><tr><th>کاربر</th><th>نام کاربری</th><th>رویداد</th><th>تاریخ و ساعت</th></tr></thead><tbody>
+        @foreach (var item in Model.AccessHistory) { <tr><td>@item.AliasName</td><td dir="ltr">@item.Username</td><td>@if (item.Action == "Login") { <span class="badge text-bg-success">ورود</span> } else { <span class="badge text-bg-secondary">خروج</span> }</td><td dir="ltr">@PersianDateTime.Format(item.OccurredAt, true)</td></tr> }
+        @if (Model.AccessHistory.Count == 0) { <tr><td colspan="4" class="text-center text-muted py-4">هنوز سابقه‌ای ثبت نشده است.</td></tr> }
+        </tbody></table></div>
+    </div></div>
+    <h2 class="h5 mb-3">نقش‌ها و مجوزها</h2><div class="accordion" id="roles">
+    @foreach (var role in Model.Roles) { var target = $"role-{role.Id}"; <div class="accordion-item"><h3 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#@target"><strong>@role.Name</strong><span class="badge text-bg-light mx-2">@role.Code</span><span class="badge text-bg-primary">@role.Permissions.Count مجوز</span></button></h3><div id="@target" class="accordion-collapse collapse" data-bs-parent="#roles"><div class="accordion-body d-flex flex-wrap gap-2">@foreach (var permission in role.Permissions.OrderBy(permission => permission.Code)) { <span class="badge text-bg-secondary p-2">@permission.Code</span> }</div></div></div> }
+    </div>
 </div>

@@ -1,13 +1,62 @@
+﻿@using KimiaFaravar.Web.Formatting
 @using KimiaFaravar.Application.Inventory
+@using KimiaFaravar.Application.Security
 @model KimiaFaravar.Web.Models.InventoryPageViewModel
-@{ ViewData["Title"] = "عملیات انبار"; }
+@{
+    ViewData["Title"] = "عملیات انبار";
+    var canReceive = User.HasClaim("permission", PermissionCodes.InventoryReceive);
+    var canDispatch = User.HasClaim("permission", PermissionCodes.InventoryDispatch);
+}
 <div dir="rtl" class="container py-4">
- <div class="d-flex justify-content-between mb-4"><div><h1 class="h3">ورود و خروج کالا</h1><p class="text-muted">ثبت سریع عملیات و مشاهده موجودی لحظه‌ای</p></div><a asp-controller="Catalog" asp-action="Index" class="btn btn-outline-primary align-self-start">مدیریت محصولات</a></div>
- @if(TempData["Success"] is string success){<div class="alert alert-success">@success</div>} @if(TempData["Error"] is string error){<div class="alert alert-danger">@error</div>}
- <div class="row g-3 mb-4">
-  <div class="col-lg-6"><div class="card border-success"><div class="card-header bg-success-subtle fw-bold">ورود کالا</div><div class="card-body"><form asp-action="Receipt" method="post"><label class="form-label">محصول</label><select name="productId" class="form-select form-select-lg mb-3" required>@foreach(var p in Model.Data.Products){<option value="@p.Id">@p.Name — @p.Sku</option>}</select><div class="row"><div class="col-5"><label class="form-label">مقدار</label><input name="quantity" type="number" min="0.001" step="0.001" class="form-control form-control-lg" required></div><div class="col-7"><label class="form-label">شرح</label><input name="reason" class="form-control form-control-lg"></div></div><button class="btn btn-success btn-lg w-100 mt-3">ثبت ورود</button></form></div></div></div>
-  <div class="col-lg-6"><div class="card border-danger"><div class="card-header bg-danger-subtle fw-bold">خروج کالا</div><div class="card-body"><form asp-action="Dispatch" method="post"><label class="form-label">محصول</label><select name="productId" class="form-select form-select-lg mb-3" required>@foreach(var p in Model.Data.Products){<option value="@p.Id">@p.Name — موجودی @p.Quantity @p.BaseUnit</option>}</select><div class="row"><div class="col-5"><label class="form-label">مقدار</label><input name="quantity" type="number" min="0.001" step="0.001" class="form-control form-control-lg" required></div><div class="col-7"><label class="form-label">دلیل خروج</label><input name="reason" class="form-control form-control-lg" required></div></div><button class="btn btn-danger btn-lg w-100 mt-3">ثبت خروج</button></form></div></div></div>
- </div>
- <div class="card mb-4"><div class="card-header fw-bold">موجودی فعلی</div><div class="table-responsive"><table class="table table-hover mb-0"><thead><tr><th>SKU</th><th>محصول</th><th>موجودی</th><th>واحد</th></tr></thead><tbody>@foreach(var p in Model.Data.Products){<tr><td>@p.Sku</td><td>@p.Name</td><td class="fw-bold">@p.Quantity</td><td>@p.BaseUnit</td></tr>}</tbody></table></div></div>
- <div class="card"><div class="card-header fw-bold">آخرین گردش‌ها</div><div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>زمان</th><th>نوع</th><th>محصول</th><th>مقدار</th><th>شرح</th></tr></thead><tbody>@foreach(var m in Model.Data.Movements.Take(30)){<tr><td>@m.CreatedAt.ToLocalTime().ToString("yyyy/MM/dd HH:mm")</td><td><span class="badge @(m.Type==MovementType.Receipt?"text-bg-success":"text-bg-danger")">@(m.Type==MovementType.Receipt?"ورود":"خروج")</span></td><td>@m.ProductName</td><td>@m.Quantity @m.Unit</td><td>@m.Reason</td></tr>}</tbody></table></div></div>
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4"><div><h1 class="h3">موجودی و گردش کالا</h1><p class="text-muted">مشاهده موجودی کالاهای مجاز و ثبت عملیات براساس سطح دسترسی</p></div><a asp-controller="Catalog" asp-action="Index" class="btn btn-outline-primary">کالاها و گروه‌ها</a></div>
+    @if (TempData["Success"] is string success) { <div class="alert alert-success">@success</div> }
+    @if (TempData["Error"] is string error) { <div class="alert alert-danger">@error</div> }
+    @if (canReceive || canDispatch) {
+    <div class="row g-3 mb-4">
+        @if (canReceive) { <div class="col-lg-6"><div class="card border-success"><div class="card-header bg-success-subtle fw-bold">ورود کالا</div><div class="card-body"><form asp-action="Receipt" method="post"><label class="form-label">کالا</label><select name="productId" class="form-select form-select-lg mb-3" required>@foreach (var product in Model.Data.Products) { <option value="@product.Id">@product.Name — @product.Sku</option> }</select><div class="row"><div class="col-5"><label class="form-label">مقدار</label><input name="quantity" type="number" min="0.001" step="0.001" class="form-control form-control-lg" required /></div><div class="col-7"><label class="form-label">شرح</label><input name="reason" class="form-control form-control-lg" /></div></div><button class="btn btn-success btn-lg w-100 mt-3">ثبت ورود</button></form></div></div></div> }
+        @if (canDispatch) { <div class="col-lg-6"><div class="card border-danger"><div class="card-header bg-danger-subtle fw-bold">خروج کالا</div><div class="card-body"><form asp-action="Dispatch" method="post"><label class="form-label">کالا</label><select name="productId" class="form-select form-select-lg mb-3" required>@foreach (var product in Model.Data.Products) { <option value="@product.Id">@product.Name — موجودی @product.Quantity @product.BaseUnit</option> }</select><div class="row"><div class="col-5"><label class="form-label">مقدار</label><input name="quantity" type="number" min="0.001" step="0.001" class="form-control form-control-lg" required /></div><div class="col-7"><label class="form-label">دلیل خروج</label><input name="reason" class="form-control form-control-lg" required /></div></div><button class="btn btn-danger btn-lg w-100 mt-3">ثبت خروج</button></form></div></div></div> }
+    </div> }
+    <div class="card mb-4"><div class="card-header d-flex justify-content-between align-items-center gap-2"><span class="fw-bold">موجودی قابل مشاهده</span><div class="d-flex gap-1"><a asp-action="ExportInventoryExcel" class="btn btn-sm btn-outline-success" title="دانلود Excel موجودی">Excel</a><a asp-action="ExportInventoryPdf" class="btn btn-sm btn-outline-danger" title="دانلود PDF موجودی">PDF</a></div></div><div class="table-responsive"><table class="table table-hover mb-0"><thead><tr><th>SKU</th><th>کالا</th><th>موجودی</th><th>واحد</th></tr></thead><tbody>@foreach (var product in Model.Data.Products) { <tr><td dir="ltr">@product.Sku</td><td>@product.Name</td><td class="fw-bold">@product.Quantity</td><td>@product.BaseUnit</td></tr> }@if (Model.Data.Products.Count == 0) { <tr><td colspan="4" class="text-center text-muted py-4">کالایی برای این نقش قابل مشاهده نیست.</td></tr> }</tbody></table></div></div>
+    <div class="card"><div class="card-header d-flex justify-content-between align-items-center gap-2"><span class="fw-bold">آخرین گردش‌ها</span><button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#movementExportModal">دانلود گزارش</button></div><div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>زمان</th><th>نوع</th><th>کالا</th><th>مقدار</th><th>شرح</th></tr></thead><tbody>@foreach (var movement in Model.Data.Movements.Take(30)) { <tr><td>@PersianDateTime.Format(movement.CreatedAt)</td><td><span class="badge @(movement.Type == MovementType.Receipt ? "text-bg-success" : "text-bg-danger")">@(movement.Type == MovementType.Receipt ? "ورود" : "خروج")</span></td><td>@movement.ProductName</td><td>@movement.Quantity @movement.Unit</td><td>@movement.Reason</td></tr> }</tbody></table></div></div>
+    <div class="modal fade" id="movementExportModal" tabindex="-1" aria-labelledby="movementExportTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+            <div class="modal-header"><h2 class="modal-title fs-5" id="movementExportTitle">خروجی گردش‌های کالا</h2><button type="button" class="btn-close ms-0" data-bs-dismiss="modal" aria-label="بستن"></button></div>
+            <div class="modal-body">
+                <p class="text-muted small">تمام گردش‌های قابل مشاهده شما در بازه انتخاب‌شده، بدون محدودیت تعداد، در خروجی قرار می‌گیرند.</p>
+                <div class="row g-3">
+                    <div class="col-sm-6"><label for="movement-from" class="form-label">از تاریخ</label><input id="movement-from" class="form-control" value="@PersianDateTime.DaysAgoDate(6)" data-jdp data-jdp-only-date autocomplete="off" inputmode="numeric" /></div>
+                    <div class="col-sm-6"><label for="movement-to" class="form-label">تا تاریخ</label><input id="movement-to" class="form-control" value="@PersianDateTime.TodayDate()" data-jdp data-jdp-only-date autocomplete="off" inputmode="numeric" /></div>
+                </div>
+                <div id="movement-date-error" class="alert alert-danger small mt-3 mb-0 d-none">تاریخ شروع و پایان را درست انتخاب کنید.</div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">انصراف</button><button type="button" class="btn btn-success js-download-movements" data-url="@Url.Action("ExportMovementsExcel")">دانلود Excel</button><button type="button" class="btn btn-danger js-download-movements" data-url="@Url.Action("ExportMovementsPdf")">دانلود PDF</button></div>
+        </div></div>
+    </div>
 </div>
+@section Styles { <link rel="stylesheet" href="~/lib/jalali-datepicker/jalalidatepicker.min.css" asp-append-version="true" /> }
+@section Scripts {
+<script src="~/lib/jalali-datepicker/jalalidatepicker.min.js" asp-append-version="true"></script>
+<script>
+    const persianDigits = "۰۱۲۳۴۵۶۷۸۹";
+    const toPersianDigits = value => value.replace(/[0-9]/g, digit => persianDigits[Number(digit)]);
+    const dateInputs = document.querySelectorAll("input[data-jdp]");
+    dateInputs.forEach(input => {
+        input.value = toPersianDigits(input.value);
+        input.addEventListener("input", () => {
+            const start = input.selectionStart;
+            input.value = toPersianDigits(input.value);
+            if (start !== null) input.setSelectionRange(start, start);
+        });
+        input.addEventListener("change", () => { input.value = toPersianDigits(input.value); });
+    });
+    jalaliDatepicker.startWatch({ selector: "input[data-jdp]", autoShow: true, persianDigits: true });
+    document.querySelectorAll(".js-download-movements").forEach(button => button.addEventListener("click", () => {
+        const from = document.getElementById("movement-from").value;
+        const to = document.getElementById("movement-to").value;
+        const valid = /^\d{4}\/\d{2}\/\d{2}$/.test(from.replace(/[۰-۹]/g, digit => "۰۱۲۳۴۵۶۷۸۹".indexOf(digit))) &&
+                      /^\d{4}\/\d{2}\/\d{2}$/.test(to.replace(/[۰-۹]/g, digit => "۰۱۲۳۴۵۶۷۸۹".indexOf(digit)));
+        document.getElementById("movement-date-error").classList.toggle("d-none", valid);
+        if (valid) window.location.href = button.dataset.url + "?from=" + encodeURIComponent(from) + "&to=" + encodeURIComponent(to);
+    }));
+</script>
+}

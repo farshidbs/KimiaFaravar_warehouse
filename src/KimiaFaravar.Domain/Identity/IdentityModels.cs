@@ -1,4 +1,4 @@
-namespace KimiaFaravar.Domain.Identity;
+﻿namespace KimiaFaravar.Domain.Identity;
 
 public abstract class Entity { public long Id { get; protected set; } }
 
@@ -24,7 +24,9 @@ public sealed class User : Entity
     public byte[] RowVersion { get; private set; } = [];
     public void SetPasswordHash(string value) { ArgumentException.ThrowIfNullOrWhiteSpace(value); PasswordHash = value; UpdatedAt = DateTimeOffset.UtcNow; }
     public void RecordLogin(DateTimeOffset now) { LastLoginAt = now; UpdatedAt = now; }
+    public void ChangeRole(long roleId) { RoleId = roleId; UpdatedAt = DateTimeOffset.UtcNow; }
     public void Disable() { IsEnabled = false; UpdatedAt = DateTimeOffset.UtcNow; }
+    public void Enable() { IsEnabled = true; UpdatedAt = DateTimeOffset.UtcNow; }
 }
 
 public sealed class Role : Entity

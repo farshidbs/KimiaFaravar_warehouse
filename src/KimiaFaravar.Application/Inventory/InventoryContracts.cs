@@ -1,9 +1,9 @@
-namespace KimiaFaravar.Application.Inventory;
+﻿namespace KimiaFaravar.Application.Inventory;
 
 public enum SpecificationDataType { Text, Decimal, Integer, Boolean, Select }
 public enum MovementType { Receipt, Dispatch }
 
-public sealed record ProductGroupDto(long Id, string Name, string Code, long? ParentId);
+public sealed record ProductGroupDto(long Id, string Name, string Code, long? ParentId, bool VisibleToInternalSales, bool VisibleToMarketDistribution);
 public sealed record SpecificationDto(long Id, long ProductGroupId, string Name, string Code, SpecificationDataType DataType, bool IsRequired, bool IsVariantKey);
 public sealed record SpecificationOptionDto(long Id, long SpecificationId, string Value);
 public sealed record ProductSpecificationValueDto(long ProductId, long SpecificationId, string Value);
@@ -17,7 +17,7 @@ public sealed record InventorySnapshot(
     IReadOnlyCollection<SpecificationOptionDto> SpecificationOptions,
     IReadOnlyCollection<ProductSpecificationValueDto> ProductValues);
 
-public sealed record CreateProductGroupCommand(string Name, string Code, long? ParentId);
+public sealed record CreateProductGroupCommand(string Name, string Code, long? ParentId, bool VisibleToInternalSales, bool VisibleToMarketDistribution);
 public sealed record CreateSpecificationCommand(long ProductGroupId, string Name, string Code, SpecificationDataType DataType, bool IsRequired, bool IsVariantKey);
 public sealed record CreateSpecificationOptionCommand(long SpecificationId, string Value);
 public sealed record CreateProductCommand(long ProductGroupId, string Sku, string Name, string BaseUnit, IReadOnlyDictionary<long, string>? SpecificationValues = null);

@@ -1,4 +1,5 @@
-﻿@using KimiaFaravar.Application.Security
+﻿@using KimiaFaravar.Web.Formatting
+@using KimiaFaravar.Application.Security
 @{ var current = ViewContext.RouteData.Values["controller"]?.ToString(); }
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -7,6 +8,7 @@
 <meta name="theme-color" content="#492783" /><title>@ViewData["Title"] | کیمیا فرآور</title>
 <link rel="icon" href="~/images/brand/favicon.ico" /><link rel="apple-touch-icon" href="~/images/brand/icon-180.png" />
 <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" /><link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+@await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
 <a class="skip-link" href="#main-content">رفتن به محتوای اصلی</a>
@@ -14,18 +16,40 @@
 <a class="brand" asp-controller="Home" asp-action="Index"><img src="~/images/brand/logo-horizontal-320.webp" width="320" height="106" alt="کیمیا فرآور صنعت؛ صفحه اصلی" /></a>
 <div class="sidebar-caption">سامانه مدیریت انبار</div>
 <nav class="sidebar-nav" aria-label="منوی اصلی">
-@foreach (var item in new[] { (Controller: "Home", Title: "نمای کلی", Permission: ""), (Controller: "Inventory", Title: "موجودی و گردش کالا", Permission: PermissionCodes.InventoryView), (Controller: "Catalog", Title: "کالاها و مشخصات", Permission: PermissionCodes.ProductGroupsManage), (Controller: "AccessControl", Title: "نقش‌ها و دسترسی‌ها", Permission: PermissionCodes.RolesManage) }) {
+@foreach (var item in new[] { (Controller: "Home", Title: "نمای کلی", MobileTitle: "خانه", Permission: ""), (Controller: "Inventory", Title: "موجودی و گردش کالا", MobileTitle: "انبار", Permission: PermissionCodes.InventoryView), (Controller: "Catalog", Title: "کالاها و مشخصات", MobileTitle: "کالاها", Permission: PermissionCodes.ProductsView), (Controller: "AccessControl", Title: "نقش‌ها و دسترسی‌ها", MobileTitle: "کاربران", Permission: PermissionCodes.RolesManage) }) {
 if (item.Permission.Length > 0 && !User.HasClaim("permission", item.Permission)) { continue; }
-<a class="sidebar-link @(current == item.Controller ? "is-active" : "")" aria-current="@(current == item.Controller ? "page" : null)" asp-controller="@item.Controller" asp-action="Index"><span class="nav-mark" aria-hidden="true"></span>@item.Title</a>
+<a class="sidebar-link @(current == item.Controller ? "is-active" : "")" aria-current="@(current == item.Controller ? "page" : null)" aria-label="@item.Title" title="@item.Title" asp-controller="@item.Controller" asp-action="Index">
+<span class="nav-icon" aria-hidden="true">
+@if (item.Controller == "Home") { <svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9h13v-9M9.5 19v-5h5v5"/></svg> }
+else if (item.Controller == "Inventory") { <svg viewBox="0 0 24 24"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9"/></svg> }
+else if (item.Controller == "Catalog") { <svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/></svg> }
+else { <svg viewBox="0 0 24 24"><path d="M16 20v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM16 11l2 2 3-4"/></svg> }
+</span><span class="nav-label-full">@item.Title</span><span class="nav-label-mobile">@item.MobileTitle</span></a>
 }
 </nav><div class="sidebar-bottom">کیمیا فرآور صنعت<small>نظم در انبار، اطمینان در کار</small></div>
 </aside><div class="app-workspace">
-<header class="workspace-header"><div><span class="eyebrow">فضای کار کیمیا</span><div class="workspace-title">@ViewData["Title"]</div></div><div class="user-menu"><img src="~/images/brand/icon-64.png" width="40" height="40" alt="" /><span>@User.Identity?.Name</span>
-@if (User.Identity?.IsAuthenticated == true) { <form asp-controller="Account" asp-action="Logout" method="post"><button class="btn btn-light btn-sm">خروج</button></form> }
-</div></header>
+<header class="workspace-header"><div class="workspace-context"><span class="eyebrow">فضای کار کیمیا</span><div class="workspace-title">@ViewData["Title"]</div></div><div class="workspace-account"><div class="workspace-datetime"><div class="small text-muted">امروز @PersianDateTime.ServerToday()</div><div id="live-client-clock" class="fw-semibold" aria-live="off">--:--:--</div></div><div class="user-menu"><img src="~/images/brand/icon-64.png" width="40" height="40" alt="" /><span class="user-name">@User.Identity?.Name</span>
+@if (User.Identity?.IsAuthenticated == true) { <button type="button" class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#changeOwnPasswordModal">تغییر گذرواژه</button><form asp-controller="Account" asp-action="Logout" method="post"><button class="btn btn-light btn-sm">خروج</button></form> }
+</div></div></header>
 <main id="main-content" class="workspace-main" tabindex="-1">@RenderBody()</main>
 <footer class="workspace-footer">کیمیا فرآور صنعت <span>سامانه یکپارچه مدیریت انبار</span></footer>
 </div></div>
+@if (User.Identity?.IsAuthenticated == true) {
+<div class="modal fade" id="changeOwnPasswordModal" tabindex="-1" aria-labelledby="changeOwnPasswordTitle" aria-hidden="true" dir="rtl">
+    <div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+        <form asp-controller="Account" asp-action="ChangePassword" method="post">
+            <div class="modal-header"><h2 class="modal-title fs-5" id="changeOwnPasswordTitle">تغییر گذرواژه حساب من</h2><button type="button" class="btn-close ms-0" data-bs-dismiss="modal" aria-label="بستن"></button></div>
+            <div class="modal-body">
+                <div class="alert alert-info small">پس از تغییر موفق، نشست‌های قبلی بسته می‌شوند و باید دوباره وارد شوید.</div>
+                <div class="mb-3"><label for="own-current-password" class="form-label">گذرواژه فعلی</label><input id="own-current-password" name="CurrentPassword" type="password" class="form-control" autocomplete="current-password" required /></div>
+                <div class="mb-3"><label for="own-new-password" class="form-label">گذرواژه جدید</label><input id="own-new-password" name="NewPassword" type="password" class="form-control" minlength="8" autocomplete="new-password" required /><div class="form-text">حداقل ۸ نویسه</div></div>
+                <div><label for="own-confirm-password" class="form-label">تکرار گذرواژه جدید</label><input id="own-confirm-password" name="ConfirmPassword" type="password" class="form-control" minlength="8" autocomplete="new-password" required /><div id="own-password-mismatch" class="text-danger small mt-1 d-none">تکرار گذرواژه با گذرواژه جدید یکسان نیست.</div></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">انصراف</button><button class="btn btn-primary">تغییر گذرواژه</button></div>
+        </form>
+    </div></div>
+</div>
+}
 <script src="~/lib/jquery/dist/jquery.min.js"></script><script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script><script src="~/js/site.js" asp-append-version="true"></script>
 @await RenderSectionAsync("Scripts", required: false)
 </body></html>

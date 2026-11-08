@@ -17,6 +17,12 @@
       "name": "\u0635\u0641\u062D\u0647 \u0641\u0648\u0644\u0627\u062F\u06CC \u0646\u0648\u0639 2",
       "code": "SFLD2",
       "parentId": 2
+    },
+    {
+      "id": 4,
+      "name": "\u06AF\u0631\u0648\u0647 \u062A\u0633\u062A",
+      "code": "TESTGROUP",
+      "parentId": null
     }
   ],
   "specifications": [
@@ -56,7 +62,7 @@
       "sku": "WS-1793993277",
       "name": "\u0648\u0627\u0634\u0631 \u0641\u0648\u0644\u0627\u062F\u06CC \u062A\u0633\u062A",
       "baseUnit": "\u0639\u062F\u062F",
-      "quantity": 27
+      "quantity": 127
     },
     {
       "id": 2,
@@ -81,6 +87,14 @@
       "name": "\u0635\u0641\u062D\u0647 \u0641\u0648\u0644\u0627\u062F\u06CC \u0646\u0648\u0639 2 \u0627\u0635\u0644\u06CC",
       "baseUnit": "\u0645\u062A\u0631",
       "quantity": 0
+    },
+    {
+      "id": 5,
+      "productGroupId": 4,
+      "sku": "TESTVASHER",
+      "name": "\u0648\u0627\u0634\u0631 \u0635\u0646\u0639\u062A\u06CC \u062A\u0633\u062A",
+      "baseUnit": "\u0639\u062F\u062F",
+      "quantity": 60
     }
   ],
   "productValues": [
@@ -159,6 +173,33 @@
       "unit": "\u0645\u062A\u0631",
       "reason": "\u0634\u0631\u062D \u062A\u0633\u062A",
       "createdAt": "2026-11-06T20:37:52.5310071+00:00"
+    },
+    {
+      "id": 7,
+      "productId": 1,
+      "type": 0,
+      "quantity": 100,
+      "unit": "\u0639\u062F\u062F",
+      "reason": "\u0648\u0627\u0634\u0631 \u062C\u0646\u0648\u0628",
+      "createdAt": "2026-11-07T03:35:31.8999017+00:00"
+    },
+    {
+      "id": 8,
+      "productId": 5,
+      "type": 0,
+      "quantity": 100,
+      "unit": "\u0639\u062F\u062F",
+      "reason": "\u0627\u0632 \u0627\u0646\u0628\u0627\u0631 \u0627\u0635\u0644\u06CC - \u062E\u0631\u06CC\u062F \u062E\u0627\u0631\u062C\u06CC",
+      "createdAt": "2026-11-07T18:19:39.1787346+00:00"
+    },
+    {
+      "id": 9,
+      "productId": 5,
+      "type": 1,
+      "quantity": 40,
+      "unit": "\u0639\u062F\u062F",
+      "reason": "\u062A\u0648\u0644\u06CC\u062F \u062C\u0646\u0648\u0628 \u0633\u0641\u0627\u0631\u0633 2354",
+      "createdAt": "2026-11-07T18:20:19.2302582+00:00"
     }
   ]
 }

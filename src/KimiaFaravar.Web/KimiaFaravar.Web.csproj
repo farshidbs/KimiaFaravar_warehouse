@@ -12,6 +12,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ClosedXML" />
+    <PackageReference Include="QuestPDF" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\KimiaFaravar.Application\KimiaFaravar.Application.csproj" />
     <ProjectReference Include="..\KimiaFaravar.Infrastructure\KimiaFaravar.Infrastructure.csproj" />
   </ItemGroup>

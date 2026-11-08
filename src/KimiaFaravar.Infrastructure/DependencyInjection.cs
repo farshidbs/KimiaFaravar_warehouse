@@ -1,4 +1,4 @@
-using KimiaFaravar.Application.Security;
+﻿using KimiaFaravar.Application.Security;
 using KimiaFaravar.Domain.Identity;
 using KimiaFaravar.Infrastructure.Persistence;
 using KimiaFaravar.Infrastructure.Security;
@@ -24,17 +24,21 @@ public static class DependencyInjection
             services.AddScoped<IStorageInitializer>(sp => sp.GetRequiredService<JsonAuthenticationService>());
             services.AddScoped<ISessionValidator>(sp => sp.GetRequiredService<JsonAuthenticationService>());
             services.AddScoped<IAccessControlQueryService>(sp => sp.GetRequiredService<JsonAuthenticationService>());
+            services.AddScoped<IUserManagementService>(sp => sp.GetRequiredService<JsonAuthenticationService>());
+            services.AddScoped<IAccessHistoryService>(sp => sp.GetRequiredService<JsonAuthenticationService>());
             services.AddScoped<IInventoryMvpService, JsonInventoryMvpService>();
         }
         else
         {
-            var connection = configuration.GetConnectionString("InventoryDatabase") ?? throw new InvalidOperationException("ConnectionStrings:InventoryDatabase تنظیم نشده است.");
+            var connection = configuration.GetConnectionString("InventoryDatabase") ?? throw new InvalidOperationException("ConnectionStrings:InventoryDatabase ØªÙ†Ø¸ÛŒÙ… Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.");
             services.AddDbContext<AppDbContext>(o => o.UseSqlServer(connection, sql => sql.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IStorageInitializer, DatabaseInitializer>();
             services.AddScoped<SqlAccessControlService>();
             services.AddScoped<ISessionValidator>(sp => sp.GetRequiredService<SqlAccessControlService>());
             services.AddScoped<IAccessControlQueryService>(sp => sp.GetRequiredService<SqlAccessControlService>());
+            services.AddScoped<IUserManagementService>(sp => sp.GetRequiredService<SqlAccessControlService>());
+            services.AddScoped<IAccessHistoryService>(sp => sp.GetRequiredService<SqlAccessControlService>());
         }
         return services;
     }

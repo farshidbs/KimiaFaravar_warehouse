@@ -1,3 +1,4 @@
+﻿using System.Security.Claims;
 using System.Text.Json;
 using KimiaFaravar.Application.Inventory;
 using KimiaFaravar.Application.Security;
@@ -10,8 +11,12 @@ namespace KimiaFaravar.Web.Controllers;
 [Authorize]
 public sealed class CatalogController(IInventoryMvpService service) : Controller
 {
-    [Authorize(Policy = PermissionCodes.ProductGroupsManage)]
-    public async Task<IActionResult> Index(CancellationToken ct) => View(new CatalogPageViewModel(await service.GetSnapshotAsync(ct)));
+    [Authorize(Policy = PermissionCodes.ProductsView)]
+    public async Task<IActionResult> Index(CancellationToken ct)
+    {
+        var data = await service.GetSnapshotAsync(ct);
+        return View(new CatalogPageViewModel(InventoryVisibility.FilterForRole(data, User.FindFirstValue(ClaimTypes.Role))));
+    }
 
     [HttpGet, Authorize(Policy = PermissionCodes.ProductsManage)]
     public async Task<IActionResult> EffectiveSpecifications(long groupId, CancellationToken ct)
@@ -21,8 +26,9 @@ public sealed class CatalogController(IInventoryMvpService service) : Controller
     }
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = PermissionCodes.ProductGroupsManage)]
-    public Task<IActionResult> CreateGroup(string name, string code, long? parentId, CancellationToken ct) =>
-        ExecuteAsync(() => service.CreateGroupAsync(new(name, code, parentId), ct));
+    public Task<IActionResult> CreateGroup(string name, string code, long? parentId, bool visibleToInternalSales,
+        bool visibleToMarketDistribution, CancellationToken ct) =>
+        ExecuteAsync(() => service.CreateGroupAsync(new(name, code, parentId, visibleToInternalSales, visibleToMarketDistribution), ct));
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = PermissionCodes.SpecificationsManage)]
     public Task<IActionResult> CreateSpecification(long productGroupId, string name, string code,
@@ -44,16 +50,16 @@ public sealed class CatalogController(IInventoryMvpService service) : Controller
                 : JsonSerializer.Deserialize<Dictionary<long, string>>(valuesJson)
                   ?? new Dictionary<long, string>();
             await service.CreateProductAsync(new(productGroupId, sku, name, baseUnit, values), ct);
-            TempData["Success"] = "کالای جدید با مشخصات انتخاب‌شده ثبت شد.";
+            TempData["Success"] = "Ú©Ø§Ù„Ø§ÛŒ Ø¬Ø¯ÛŒØ¯ Ø¨Ø§ Ù…Ø´Ø®ØµØ§Øª Ø§Ù†ØªØ®Ø§Ø¨â€ŒØ´Ø¯Ù‡ Ø«Ø¨Øª Ø´Ø¯.";
         }
-        catch (JsonException) { TempData["Error"] = "مقادیر مشخصات کالا معتبر نیستند."; }
+        catch (JsonException) { TempData["Error"] = "Ù…Ù‚Ø§Ø¯ÛŒØ± Ù…Ø´Ø®ØµØ§Øª Ú©Ø§Ù„Ø§ Ù…Ø¹ØªØ¨Ø± Ù†ÛŒØ³ØªÙ†Ø¯."; }
         catch (InventoryValidationException ex) { TempData["Error"] = ex.Message; }
         return RedirectToAction(nameof(Index));
     }
 
     private async Task<IActionResult> ExecuteAsync(Func<Task<long>> action)
     {
-        try { await action(); TempData["Success"] = "اطلاعات با موفقیت ثبت شد."; }
+        try { await action(); TempData["Success"] = "Ø§Ø·Ù„Ø§Ø¹Ø§Øª Ø¨Ø§ Ù…ÙˆÙÙ‚ÛŒØª Ø«Ø¨Øª Ø´Ø¯."; }
         catch (InventoryValidationException ex) { TempData["Error"] = ex.Message; }
         return RedirectToAction(nameof(Index));
     }

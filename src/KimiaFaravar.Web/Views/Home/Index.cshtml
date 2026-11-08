@@ -3,7 +3,7 @@
 @{
 ViewData["Title"] = "نمای کلی";
 var permissions = User.FindAll("permission").Select(x => x.Value).OrderBy(x => x).ToList();
-var roleLabel = User.FindFirstValue(ClaimTypes.Role) switch { "CEO" => "مدیرعامل", "WarehouseManager" => "مدیر انبار", "WarehouseOperator" => "کاربر انبار", "InternalSales" => "فروش داخلی", "MarketDistribution" => "توزیع بازار", _ => "کاربر سامانه" };
+var roleLabel = User.FindFirstValue(ClaimTypes.Role) switch { "CEO" => "مدیرعامل", "WarehouseManager" => "مدیر انبار", "InternalSales" => "فروش داخلی", "MarketDistribution" => "توزیع بازار", _ => "کاربر سامانه" };
 }
 <section class="welcome-panel"><div><span class="eyebrow">مدیریت روزانه، ساده‌تر از همیشه</span><h1>@User.Identity?.Name، خوش آمدید.</h1><p>از اینجا به کالاها، موجودی و عملیات انبار دسترسی دارید.</p>
 @if (User.HasClaim("permission", PermissionCodes.InventoryView)) { <a asp-controller="Inventory" asp-action="Index" class="btn btn-primary">مشاهده موجودی و گردش‌ها <span aria-hidden="true">←</span></a> }
@@ -11,7 +11,7 @@ var roleLabel = User.FindFirstValue(ClaimTypes.Role) switch { "CEO" => "مدیر
 <div class="overview-grid"><div class="overview-card"><span class="eyebrow">حساب کاربری</span><strong>@User.Identity?.Name</strong><span>فضای کار شخصی شما</span></div><div class="overview-card"><span class="eyebrow">نقش سازمانی</span><strong>@roleLabel</strong><span>دسترسی مطابق مسئولیت شما</span></div><div class="overview-card"><span class="eyebrow">دسترسی‌ها</span><strong>@permissions.Count مجوز فعال</strong><span>امکانات در دسترس این حساب</span></div></div>
 <div class="section-heading"><span class="eyebrow">مسیرهای پرکاربرد</span><h2>امروز از کجا شروع می‌کنید؟</h2></div>
 <div class="quick-actions">
-@foreach (var item in new[] { (Controller: "Inventory", Title: "موجودی و گردش کالا", Description: "مشاهده موجودی، ثبت ورود و خروج و پیگیری گردش‌ها.", Permission: PermissionCodes.InventoryView, Number: "۰۱ / انبار"), (Controller: "Catalog", Title: "کالاها و مشخصات", Description: "تعریف کالا، ساخت گروه‌ها و تنظیم مشخصات اختصاصی.", Permission: PermissionCodes.ProductGroupsManage, Number: "۰۲ / کاتالوگ"), (Controller: "AccessControl", Title: "نقش‌ها و دسترسی‌ها", Description: "مشاهده نقش‌های سازمانی و مجوزهای مربوط به هر نقش.", Permission: PermissionCodes.RolesManage, Number: "۰۳ / مدیریت") }) {
+@foreach (var item in new[] { (Controller: "Inventory", Title: "موجودی و گردش کالا", Description: "مشاهده موجودی، ثبت ورود و خروج و پیگیری گردش‌ها.", Permission: PermissionCodes.InventoryView, Number: "۰۱ / انبار"), (Controller: "Catalog", Title: "کالاها و مشخصات", Description: "تعریف کالا، ساخت گروه‌ها و تنظیم مشخصات اختصاصی.", Permission: PermissionCodes.ProductsView, Number: "۰۲ / کاتالوگ"), (Controller: "AccessControl", Title: "نقش‌ها و دسترسی‌ها", Description: "مشاهده نقش‌های سازمانی و مجوزهای مربوط به هر نقش.", Permission: PermissionCodes.RolesManage, Number: "۰۳ / مدیریت") }) {
 if (!User.HasClaim("permission", item.Permission)) { continue; }
 <a class="action-card" asp-controller="@item.Controller" asp-action="Index"><span class="action-number">@item.Number</span><h3>@item.Title</h3><p>@item.Description</p><span class="action-link">مشاهده و مدیریت <span aria-hidden="true">←</span></span></a>
 }

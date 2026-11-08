@@ -18,6 +18,7 @@
     <ProjectReference Include="..\..\src\KimiaFaravar.Domain\KimiaFaravar.Domain.csproj" />
     <ProjectReference Include="..\..\src\KimiaFaravar.Application\KimiaFaravar.Application.csproj" />
     <ProjectReference Include="..\..\src\KimiaFaravar.Infrastructure\KimiaFaravar.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\KimiaFaravar.Web\KimiaFaravar.Web.csproj" />
   </ItemGroup>
 
   <ItemGroup>
