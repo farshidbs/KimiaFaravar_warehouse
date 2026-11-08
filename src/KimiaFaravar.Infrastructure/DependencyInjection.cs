@@ -30,7 +30,7 @@ public static class DependencyInjection
         }
         else
         {
-            var connection = configuration.GetConnectionString("InventoryDatabase") ?? throw new InvalidOperationException("ConnectionStrings:InventoryDatabase ØªÙ†Ø¸ÛŒÙ… Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.");
+            var connection = configuration.GetConnectionString("InventoryDatabase") ?? throw new InvalidOperationException("ConnectionStrings:InventoryDatabase تنظیم نشده است.");
             services.AddDbContext<AppDbContext>(o => o.UseSqlServer(connection, sql => sql.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)));
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IStorageInitializer, DatabaseInitializer>();

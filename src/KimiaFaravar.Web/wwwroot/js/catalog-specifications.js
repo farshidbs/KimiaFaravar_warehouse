@@ -7,6 +7,22 @@
     let specs = [];
     let requestVersion = 0;
 
+    function filterGroupProducts() {
+        const groupId = String($group.val() || "");
+        const rows = document.querySelectorAll("#group-products [data-product-group]");
+        let count = 0;
+        rows.forEach(row => {
+            const matches = groupId !== "" && row.dataset.productGroup === groupId;
+            row.classList.toggle("d-none", !matches);
+            if (matches) count++;
+        });
+        $("#group-products .table-responsive").toggleClass("d-none", count === 0);
+        $("#group-products-status").text(!groupId
+            ? "برای نمایش کالاهای موجود، گروه کالا را انتخاب کنید."
+            : count === 0 ? "هنوز کالایی در این گروه ثبت نشده است." : `${count} کالا در گروه انتخاب‌شده`);
+    }
+    filterGroupProducts();
+
     function showError(message) { $error.text(message).removeClass("d-none"); }
     function hideError() { $error.addClass("d-none").empty(); }
     function render(specifications) {
@@ -40,6 +56,7 @@
         });
     }
     $group.on("change", function () {
+        filterGroupProducts();
         hideError();
         specs = [];
         const version = ++requestVersion;
@@ -64,3 +81,17 @@
         $("#product-values-json").val(JSON.stringify(values));
     });
 })(jQuery);
+
+document.getElementById("groupVisibilityModal")?.addEventListener("show.bs.modal", event => {
+    const button = event.relatedTarget;
+    if (!button) return;
+    document.getElementById("groupVisibilityId").value = button.dataset.groupId;
+    document.getElementById("groupVisibilityName").textContent = button.dataset.groupName;
+    document.getElementById("groupVisibilityInternal").checked = button.dataset.internalSales === "true";
+    document.getElementById("groupVisibilityMarket").checked = button.dataset.marketSales === "true";
+});
+// Keep the group editor visible after saving its visibility settings.
+if (window.location.hash === "#groups") {
+    const groupTab = document.querySelector('[data-bs-target="#groups"]');
+    if (groupTab) bootstrap.Tab.getOrCreateInstance(groupTab).show();
+}

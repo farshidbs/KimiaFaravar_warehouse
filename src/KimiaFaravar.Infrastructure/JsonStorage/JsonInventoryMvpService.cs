@@ -42,31 +42,46 @@ internal sealed class JsonInventoryMvpService : IInventoryMvpService
 
     public Task<long> CreateGroupAsync(CreateProductGroupCommand command, CancellationToken ct = default)
     {
-        ValidateText(command.Name, "Ù†Ø§Ù… Ú¯Ø±ÙˆÙ‡");
-        ValidateText(command.Code, "Ú©Ø¯ Ú¯Ø±ÙˆÙ‡");
+        ValidateText(command.Name, "نام گروه");
+        ValidateText(command.Code, "کد گروه");
         return MutateAsync(data =>
         {
             var code = command.Code.Trim().ToUpperInvariant();
-            if (data.Groups.Any(g => g.Code == code)) throw new InventoryValidationException("Ú©Ø¯ Ú¯Ø±ÙˆÙ‡ ØªÚ©Ø±Ø§Ø±ÛŒ Ø§Ø³Øª.");
+            if (data.Groups.Any(g => g.Code == code)) throw new InventoryValidationException("کد گروه تکراری است.");
             if (command.ParentId is not null && data.Groups.All(g => g.Id != command.ParentId.Value))
-                throw new InventoryValidationException("Ú¯Ø±ÙˆÙ‡ ÙˆØ§Ù„Ø¯ ÙˆØ¬ÙˆØ¯ Ù†Ø¯Ø§Ø±Ø¯.");
+                throw new InventoryValidationException("گروه والد وجود ندارد.");
             var id = NextId(data.Groups.Select(g => g.Id));
             data.Groups.Add(new(id, command.Name.Trim(), code, command.ParentId, command.VisibleToInternalSales, command.VisibleToMarketDistribution));
             return id;
         }, ct);
     }
 
+    public async Task UpdateGroupVisibilityAsync(long groupId, bool visibleToInternalSales, bool visibleToMarketDistribution, CancellationToken ct = default)
+    {
+        await MutateAsync<object?>(data =>
+        {
+            var index = data.Groups.FindIndex(group => group.Id == groupId);
+            if (index < 0) throw new InventoryValidationException("گروه کالا وجود ندارد.");
+            data.Groups[index] = data.Groups[index] with
+            {
+                VisibleToInternalSales = visibleToInternalSales,
+                VisibleToMarketDistribution = visibleToMarketDistribution
+            };
+            return null;
+        }, ct);
+    }
+
     public Task<long> CreateSpecificationAsync(CreateSpecificationCommand command, CancellationToken ct = default)
     {
-        ValidateText(command.Name, "Ù†Ø§Ù… Ù…Ø´Ø®ØµÙ‡");
-        ValidateText(command.Code, "Ú©Ø¯ Ù…Ø´Ø®ØµÙ‡");
-        if (!Enum.IsDefined(command.DataType)) throw new InventoryValidationException("Ù†ÙˆØ¹ Ù…Ø´Ø®ØµÙ‡ Ù†Ø§Ù…Ø¹ØªØ¨Ø± Ø§Ø³Øª.");
+        ValidateText(command.Name, "نام مشخصه");
+        ValidateText(command.Code, "کد مشخصه");
+        if (!Enum.IsDefined(command.DataType)) throw new InventoryValidationException("نوع مشخصه نامعتبر است.");
         return MutateAsync(data =>
         {
             var inherited = ResolveSpecifications(data, command.ProductGroupId);
             var code = command.Code.Trim().ToUpperInvariant();
             if (inherited.Any(s => s.Code == code))
-                throw new InventoryValidationException("Ø§ÛŒÙ† Ù…Ø´Ø®ØµÙ‡ Ø¯Ø± Ú¯Ø±ÙˆÙ‡ ÛŒØ§ Ú¯Ø±ÙˆÙ‡ ÙˆØ§Ù„Ø¯ Ù‚Ø¨Ù„Ø§Ù‹ ØªØ¹Ø±ÛŒÙ Ø´Ø¯Ù‡ Ø§Ø³Øª.");
+                throw new InventoryValidationException("این مشخصه در گروه یا گروه والد قبلاً تعریف شده است.");
             var id = NextId(data.Specifications.Select(s => s.Id));
             data.Specifications.Add(new(id, command.ProductGroupId, command.Name.Trim(), code,
                 command.DataType, command.IsRequired, command.IsVariantKey));
@@ -76,16 +91,16 @@ internal sealed class JsonInventoryMvpService : IInventoryMvpService
 
     public Task<long> CreateSpecificationOptionAsync(CreateSpecificationOptionCommand command, CancellationToken ct = default)
     {
-        ValidateText(command.Value, "Ù…Ù‚Ø¯Ø§Ø± Ù…Ø´Ø®ØµÙ‡");
+        ValidateText(command.Value, "مقدار مشخصه");
         return MutateAsync(data =>
         {
             var spec = data.Specifications.SingleOrDefault(s => s.Id == command.SpecificationId);
             if (spec is null || spec.DataType != SpecificationDataType.Select)
-                throw new InventoryValidationException("Ù…Ù‚Ø¯Ø§Ø± Ø§Ù†ØªØ®Ø§Ø¨ÛŒ Ø¨Ø§ÛŒØ¯ Ø¨Ù‡ Ù…Ø´Ø®ØµÙ‡ Ø§Ø² Ù†ÙˆØ¹ Ù„ÛŒØ³Øª ÙˆØ§Ø¨Ø³ØªÙ‡ Ø¨Ø§Ø´Ø¯.");
+                throw new InventoryValidationException("مقدار انتخابی باید به مشخصه از نوع لیست وابسته باشد.");
             var value = command.Value.Trim();
             if (data.SpecificationOptions.Any(o => o.SpecificationId == spec.Id &&
                 string.Equals(o.Value, value, StringComparison.OrdinalIgnoreCase)))
-                throw new InventoryValidationException("Ø§ÛŒÙ† Ú¯Ø²ÛŒÙ†Ù‡ Ù‚Ø¨Ù„Ø§Ù‹ ØªØ¹Ø±ÛŒÙ Ø´Ø¯Ù‡ Ø§Ø³Øª.");
+                throw new InventoryValidationException("این گزینه قبلاً تعریف شده است.");
             var id = NextId(data.SpecificationOptions.Select(o => o.Id));
             data.SpecificationOptions.Add(new(id, spec.Id, value));
             return id;
@@ -94,33 +109,33 @@ internal sealed class JsonInventoryMvpService : IInventoryMvpService
 
     public Task<long> CreateProductAsync(CreateProductCommand command, CancellationToken ct = default)
     {
-        ValidateText(command.Name, "Ù†Ø§Ù… Ú©Ø§Ù„Ø§");
-        ValidateText(command.Sku, "Ú©Ø¯ Ú©Ø§Ù„Ø§");
-        ValidateText(command.BaseUnit, "ÙˆØ§Ø­Ø¯ Ù¾Ø§ÛŒÙ‡");
+        ValidateText(command.Name, "نام کالا");
+        ValidateText(command.Sku, "کد کالا");
+        ValidateText(command.BaseUnit, "واحد پایه");
         return MutateAsync(data =>
         {
             var specs = ResolveSpecifications(data, command.ProductGroupId);
             var received = command.SpecificationValues ?? new Dictionary<long, string>();
             if (received.Keys.Except(specs.Select(s => s.Id)).Any())
-                throw new InventoryValidationException("ÛŒÚ©ÛŒ Ø§Ø² Ù…Ø´Ø®ØµØ§Øª Ø§Ø±Ø³Ø§Ù„ÛŒ Ù…ØªØ¹Ù„Ù‚ Ø¨Ù‡ Ú¯Ø±ÙˆÙ‡ Ú©Ø§Ù„Ø§ Ù†ÛŒØ³Øª.");
+                throw new InventoryValidationException("یکی از مشخصات ارسالی متعلق به گروه کالا نیست.");
             var normalized = new Dictionary<long, string>();
             foreach (var spec in specs)
             {
                 received.TryGetValue(spec.Id, out var raw);
                 var value = NormalizeValue(data, spec, raw);
                 if (spec.IsRequired && value is null)
-                    throw new InventoryValidationException($"Ù…Ù‚Ø¯Ø§Ø± Ù…Ø´Ø®ØµÙ‡ Â«{spec.Name}Â» Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª.");
+                    throw new InventoryValidationException($"مقدار مشخصه «{spec.Name}» الزامی است.");
                 if (value is not null) normalized.Add(spec.Id, value);
             }
             var sku = command.Sku.Trim().ToUpperInvariant();
             if (data.Products.Any(p => p.Sku == sku))
-                throw new InventoryValidationException("Ú©Ø¯ Ú©Ø§Ù„Ø§ ØªÚ©Ø±Ø§Ø±ÛŒ Ø§Ø³Øª.");
+                throw new InventoryValidationException("کد کالا تکراری است.");
             var variantKeys = specs.Where(s => s.IsVariantKey).Select(s => s.Id).OrderBy(id => id).ToArray();
             if (variantKeys.Length > 0 && data.Products.Where(p => p.ProductGroupId == command.ProductGroupId)
                 .Any(p => variantKeys.All(id =>
                     string.Equals(data.ProductValues.FirstOrDefault(v => v.ProductId == p.Id && v.SpecificationId == id)?.Value,
                         normalized.GetValueOrDefault(id), StringComparison.OrdinalIgnoreCase))))
-                throw new InventoryValidationException("Ú©Ø§Ù„Ø§ÛŒÛŒ Ø¨Ø§ Ù‡Ù…ÛŒÙ† ØªØ±Ú©ÛŒØ¨ Ù…Ø´Ø®ØµØ§Øª Ú©Ù„ÛŒØ¯ÛŒ Ù‚Ø¨Ù„Ø§Ù‹ Ø«Ø¨Øª Ø´Ø¯Ù‡ Ø§Ø³Øª.");
+                throw new InventoryValidationException("کالایی با همین ترکیب مشخصات کلیدی قبلاً ثبت شده است.");
 
             var productId = NextId(data.Products.Select(p => p.Id));
             data.Products.Add(new(productId, command.ProductGroupId, sku, command.Name.Trim(), command.BaseUnit.Trim(), 0));
@@ -135,14 +150,14 @@ internal sealed class JsonInventoryMvpService : IInventoryMvpService
 
     private static Task<object?> PostAsync(PostMovementCommand command, MovementType type, CancellationToken ct)
     {
-        if (command.Quantity <= 0) throw new InventoryValidationException("Ù…Ù‚Ø¯Ø§Ø± Ø¨Ø§ÛŒØ¯ Ø¨Ø²Ø±Ú¯â€ŒØªØ± Ø§Ø² ØµÙØ± Ø¨Ø§Ø´Ø¯.");
+        if (command.Quantity <= 0) throw new InventoryValidationException("مقدار باید بزرگ‌تر از صفر باشد.");
         return MutateAsync<object?>(data =>
         {
             var index = data.Products.FindIndex(p => p.Id == command.ProductId);
-            if (index < 0) throw new InventoryValidationException("Ú©Ø§Ù„Ø§ ÙˆØ¬ÙˆØ¯ Ù†Ø¯Ø§Ø±Ø¯.");
+            if (index < 0) throw new InventoryValidationException("کالا وجود ندارد.");
             var product = data.Products[index];
             var delta = type == MovementType.Receipt ? command.Quantity : -command.Quantity;
-            if (product.Quantity + delta < 0) throw new InventoryValidationException("Ù…ÙˆØ¬ÙˆØ¯ÛŒ Ø¨Ø±Ø§ÛŒ Ø§ÛŒÙ† Ø®Ø±ÙˆØ¬ Ú©Ø§ÙÛŒ Ù†ÛŒØ³Øª.");
+            if (product.Quantity + delta < 0) throw new InventoryValidationException("موجودی برای این خروج کافی نیست.");
             data.Products[index] = product with { Quantity = product.Quantity + delta };
             data.Movements.Add(new(NextId(data.Movements.Select(m => m.Id)), product.Id, type,
                 command.Quantity, product.BaseUnit, command.Reason?.Trim(), DateTimeOffset.UtcNow));
@@ -157,27 +172,27 @@ internal sealed class JsonInventoryMvpService : IInventoryMvpService
         switch (spec.DataType)
         {
             case SpecificationDataType.Text:
-                if (value.Length > 300) throw new InventoryValidationException($"Ù…Ù‚Ø¯Ø§Ø± {spec.Name} Ø¨ÛŒØ´ Ø§Ø² Ø­Ø¯ Ø·ÙˆÙ„Ø§Ù†ÛŒ Ø§Ø³Øª.");
+                if (value.Length > 300) throw new InventoryValidationException($"مقدار {spec.Name} بیش از حد طولانی است.");
                 return value.Normalize().ToUpperInvariant();
             case SpecificationDataType.Integer:
                 if (!long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
-                    throw new InventoryValidationException($"Ù…Ù‚Ø¯Ø§Ø± {spec.Name} Ø¨Ø§ÛŒØ¯ Ø¹Ø¯Ø¯ ØµØ­ÛŒØ­ Ø¨Ø§Ø´Ø¯.");
+                    throw new InventoryValidationException($"مقدار {spec.Name} باید عدد صحیح باشد.");
                 return number.ToString(CultureInfo.InvariantCulture);
             case SpecificationDataType.Decimal:
                 if (!decimal.TryParse(value, NumberStyles.Number, CultureInfo.InvariantCulture, out var dec))
-                    throw new InventoryValidationException($"Ù…Ù‚Ø¯Ø§Ø± {spec.Name} Ø¨Ø§ÛŒØ¯ Ø¹Ø¯Ø¯ Ø§Ø¹Ø´Ø§Ø±ÛŒ Ù…Ø¹ØªØ¨Ø± Ø¨Ø§Ø´Ø¯.");
+                    throw new InventoryValidationException($"مقدار {spec.Name} باید عدد اعشاری معتبر باشد.");
                 return dec.ToString("G29", CultureInfo.InvariantCulture);
             case SpecificationDataType.Boolean:
                 if (value is "true" or "1") return "true";
                 if (value is "false" or "0") return "false";
-                throw new InventoryValidationException($"Ù…Ù‚Ø¯Ø§Ø± {spec.Name} Ø¨Ø§ÛŒØ¯ Ø¨Ù„Ù‡ ÛŒØ§ Ø®ÛŒØ± Ø¨Ø§Ø´Ø¯.");
+                throw new InventoryValidationException($"مقدار {spec.Name} باید بله یا خیر باشد.");
             case SpecificationDataType.Select:
                 if (!long.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var optionId) ||
                     !data.SpecificationOptions.Any(o => o.Id == optionId && o.SpecificationId == spec.Id))
-                    throw new InventoryValidationException($"Ú¯Ø²ÛŒÙ†Ù‡ Ø§Ù†ØªØ®Ø§Ø¨â€ŒØ´Ø¯Ù‡ Ø¨Ø±Ø§ÛŒ {spec.Name} Ù…Ø¹ØªØ¨Ø± Ù†ÛŒØ³Øª.");
+                    throw new InventoryValidationException($"گزینه انتخاب‌شده برای {spec.Name} معتبر نیست.");
                 return optionId.ToString(CultureInfo.InvariantCulture);
             default:
-                throw new InventoryValidationException("Ù†ÙˆØ¹ Ù…Ø´Ø®ØµÙ‡ Ù†Ø§Ù…Ø¹ØªØ¨Ø± Ø§Ø³Øª.");
+                throw new InventoryValidationException("نوع مشخصه نامعتبر است.");
         }
     }
 
@@ -188,9 +203,9 @@ internal sealed class JsonInventoryMvpService : IInventoryMvpService
         long? current = groupId;
         while (current is not null)
         {
-            if (!visited.Add(current.Value)) throw new InventoryValidationException("Ú†Ø±Ø®Ù‡ Ø¯Ø± Ú¯Ø±ÙˆÙ‡â€ŒØ¨Ù†Ø¯ÛŒ Ú©Ø§Ù„Ø§ Ø´Ù†Ø§Ø³Ø§ÛŒÛŒ Ø´Ø¯.");
+            if (!visited.Add(current.Value)) throw new InventoryValidationException("چرخه در گروه‌بندی کالا شناسایی شد.");
             var group = data.Groups.SingleOrDefault(g => g.Id == current.Value)
-                ?? throw new InventoryValidationException("Ú¯Ø±ÙˆÙ‡ Ú©Ø§Ù„Ø§ ÙˆØ¬ÙˆØ¯ Ù†Ø¯Ø§Ø±Ø¯.");
+                ?? throw new InventoryValidationException("گروه کالا وجود ندارد.");
             groups.Add(group);
             current = group.ParentId;
         }
@@ -205,7 +220,7 @@ internal sealed class JsonInventoryMvpService : IInventoryMvpService
         d.Movements.OrderByDescending(x => x.CreatedAt).Select(x =>
         {
             var product = d.Products.SingleOrDefault(p => p.Id == x.ProductId);
-            return new StockMovementDto(x.Id, x.ProductId, product?.Name ?? "Ú©Ø§Ù„Ø§ÛŒ Ø­Ø°Ùâ€ŒØ´Ø¯Ù‡", x.Type, x.Quantity, x.Unit, x.Reason, x.CreatedAt);
+            return new StockMovementDto(x.Id, x.ProductId, product?.Name ?? "کالای حذف‌شده", x.Type, x.Quantity, x.Unit, x.Reason, x.CreatedAt);
         }).ToArray(),
         d.SpecificationOptions.Select(x => new SpecificationOptionDto(x.Id, x.SpecificationId, x.Value)).ToArray(),
         d.ProductValues.Select(x => new ProductSpecificationValueDto(x.ProductId, x.SpecificationId, x.Value)).ToArray());
@@ -250,7 +265,7 @@ internal sealed class JsonInventoryMvpService : IInventoryMvpService
     private static long NextId(IEnumerable<long> values) => values.DefaultIfEmpty().Max() + 1;
     private static void ValidateText(string? value, string name)
     {
-        if (string.IsNullOrWhiteSpace(value)) throw new InventoryValidationException($"{name} Ø§Ù„Ø²Ø§Ù…ÛŒ Ø§Ø³Øª.");
+        if (string.IsNullOrWhiteSpace(value)) throw new InventoryValidationException($"{name} الزامی است.");
     }
 
     private sealed class JsonInventoryData

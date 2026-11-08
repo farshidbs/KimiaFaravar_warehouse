@@ -30,6 +30,20 @@ public sealed class CatalogController(IInventoryMvpService service) : Controller
         bool visibleToMarketDistribution, CancellationToken ct) =>
         ExecuteAsync(() => service.CreateGroupAsync(new(name, code, parentId, visibleToInternalSales, visibleToMarketDistribution), ct));
 
+    [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = PermissionCodes.ProductGroupsManage)]
+    [Authorize(Roles = RoleCodes.CEO + "," + RoleCodes.WarehouseManager)]
+    public async Task<IActionResult> UpdateGroupVisibility(long groupId, bool visibleToInternalSales,
+        bool visibleToMarketDistribution, CancellationToken ct)
+    {
+        try
+        {
+            await service.UpdateGroupVisibilityAsync(groupId, visibleToInternalSales, visibleToMarketDistribution, ct);
+            TempData["Success"] = "سطح نمایش گروه ذخیره شد.";
+        }
+        catch (InventoryValidationException ex) { TempData["Error"] = ex.Message; }
+        return Redirect(Url.Action(nameof(Index)) + "#groups");
+    }
+
     [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = PermissionCodes.SpecificationsManage)]
     public Task<IActionResult> CreateSpecification(long productGroupId, string name, string code,
         SpecificationDataType dataType, bool isRequired, bool isVariantKey, CancellationToken ct) =>
@@ -50,16 +64,16 @@ public sealed class CatalogController(IInventoryMvpService service) : Controller
                 : JsonSerializer.Deserialize<Dictionary<long, string>>(valuesJson)
                   ?? new Dictionary<long, string>();
             await service.CreateProductAsync(new(productGroupId, sku, name, baseUnit, values), ct);
-            TempData["Success"] = "Ú©Ø§Ù„Ø§ÛŒ Ø¬Ø¯ÛŒØ¯ Ø¨Ø§ Ù…Ø´Ø®ØµØ§Øª Ø§Ù†ØªØ®Ø§Ø¨â€ŒØ´Ø¯Ù‡ Ø«Ø¨Øª Ø´Ø¯.";
+            TempData["Success"] = "کالای جدید با مشخصات انتخاب‌شده ثبت شد.";
         }
-        catch (JsonException) { TempData["Error"] = "Ù…Ù‚Ø§Ø¯ÛŒØ± Ù…Ø´Ø®ØµØ§Øª Ú©Ø§Ù„Ø§ Ù…Ø¹ØªØ¨Ø± Ù†ÛŒØ³ØªÙ†Ø¯."; }
+        catch (JsonException) { TempData["Error"] = "مقادیر مشخصات کالا معتبر نیستند."; }
         catch (InventoryValidationException ex) { TempData["Error"] = ex.Message; }
         return RedirectToAction(nameof(Index));
     }
 
     private async Task<IActionResult> ExecuteAsync(Func<Task<long>> action)
     {
-        try { await action(); TempData["Success"] = "Ø§Ø·Ù„Ø§Ø¹Ø§Øª Ø¨Ø§ Ù…ÙˆÙÙ‚ÛŒØª Ø«Ø¨Øª Ø´Ø¯."; }
+        try { await action(); TempData["Success"] = "اطلاعات با موفقیت ثبت شد."; }
         catch (InventoryValidationException ex) { TempData["Error"] = ex.Message; }
         return RedirectToAction(nameof(Index));
     }

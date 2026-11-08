@@ -23,14 +23,14 @@ internal sealed class JsonAuthenticationService(IPasswordHasher<User> hasher, IC
             if (File.Exists(FilePath)) return;
             var username = configuration["JsonStore:AdminUsername"] ?? "admin";
             var password = configuration["JsonStore:AdminPassword"] ?? "Demo@12345";
-            var identity = new User("Ù…Ø¯ÛŒØ± Ø³ÛŒØ³ØªÙ…", username, 1);
+            var identity = new User("مدیر سیستم", username, 1);
             var data = new JsonData
             {
                 Roles =
                 [
-                    new(1, RoleCodes.CEO, "Ù…Ø¯ÛŒØ±Ø¹Ø§Ù…Ù„"), new(2, RoleCodes.WarehouseManager, "Ù…Ø¯ÛŒØ± Ø§Ù†Ø¨Ø§Ø±"),
+                    new(1, RoleCodes.CEO, "مدیرعامل"), new(2, RoleCodes.WarehouseManager, "مدیر انبار"),
                     new(4, RoleCodes.InternalSales, "همکاران فروش داخلی"),
-                    new(5, RoleCodes.MarketDistribution, "Ù‡Ù…Ú©Ø§Ø±Ø§Ù† ØªÙˆØ²ÛŒØ¹ Ø¨Ø§Ø²Ø§Ø±")
+                    new(5, RoleCodes.MarketDistribution, "همکاران توزیع بازار")
                 ],
                 Permissions = PermissionCodes.All.ToList(),
                 Users = [new(1, identity.AliasName, identity.Username, hasher.HashPassword(identity, password), 1, true)]

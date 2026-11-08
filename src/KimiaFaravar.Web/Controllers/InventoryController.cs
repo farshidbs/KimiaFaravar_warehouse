@@ -56,10 +56,10 @@ public sealed class InventoryController(IInventoryMvpService service, IInventory
     }
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = PermissionCodes.InventoryReceive)]
-    public Task<IActionResult> Receipt(long productId, decimal quantity, string? reason, CancellationToken ct) => ExecuteAsync(() => service.PostReceiptAsync(new(productId, quantity, reason), ct), "ÙˆØ±ÙˆØ¯ Ú©Ø§Ù„Ø§ Ø«Ø¨Øª Ø´Ø¯.");
+    public Task<IActionResult> Receipt(long productId, decimal quantity, string? reason, CancellationToken ct) => ExecuteAsync(() => service.PostReceiptAsync(new(productId, quantity, reason), ct), "ورود کالا ثبت شد.");
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = PermissionCodes.InventoryDispatch)]
-    public Task<IActionResult> Dispatch(long productId, decimal quantity, string? reason, CancellationToken ct) => ExecuteAsync(() => service.PostDispatchAsync(new(productId, quantity, reason), ct), "Ø®Ø±ÙˆØ¬ Ú©Ø§Ù„Ø§ Ø«Ø¨Øª Ø´Ø¯.");
+    public Task<IActionResult> Dispatch(long productId, decimal quantity, string? reason, CancellationToken ct) => ExecuteAsync(() => service.PostDispatchAsync(new(productId, quantity, reason), ct), "خروج کالا ثبت شد.");
 
     private async Task<InventorySnapshot> GetVisibleSnapshotAsync(CancellationToken ct)
     {

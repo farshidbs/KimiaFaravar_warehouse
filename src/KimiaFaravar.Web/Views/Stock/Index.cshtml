@@ -1,0 +1,60 @@
+﻿@using KimiaFaravar.Application.Security
+@using KimiaFaravar.Web.Formatting
+@model KimiaFaravar.Web.Models.StockPageViewModel
+@{
+    ViewData["Title"] = "مدیریت موجودی";
+    var canReceive = User.HasClaim("permission", PermissionCodes.InventoryReceive);
+    var canDispatch = User.HasClaim("permission", PermissionCodes.InventoryDispatch);
+    var canOperate = canReceive || canDispatch;
+}
+<div class="container py-4" dir="rtl">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div><h1 class="h3 mb-1">مدیریت موجودی</h1><p class="text-muted mb-0">جست‌وجوی کالا، مشاهده مشخصات و ثبت سریع ورود و خروج</p></div>
+        <div class="d-flex gap-2">
+            <a data-stock-export asp-action="Excel" asp-route-groupId="@Model.GroupId" asp-route-search="@Model.Search" class="btn btn-outline-success">خروجی Excel</a>
+            <a data-stock-export asp-action="Pdf" asp-route-groupId="@Model.GroupId" asp-route-search="@Model.Search" class="btn btn-outline-danger">خروجی PDF</a>
+        </div>
+    </div>
+    @if (TempData["Success"] is string success) { <div class="alert alert-success" role="status">@success</div> }
+    @if (TempData["Error"] is string error) { <div class="alert alert-danger" role="alert">@error</div> }
+    <section class="card mb-4"><div class="card-body">
+        <form id="stock-filter-form" method="get" asp-action="Index" class="row g-3 align-items-end" role="search">
+            <div class="col-lg-4"><label class="form-label" for="stock-group">گروه کالا</label>
+                <select id="stock-group" name="groupId" class="form-select">
+                    <option value="">همه گروه‌های مجاز</option>
+                    @foreach (var group in Model.Data.Groups.OrderBy(group => StockSearch.GroupPath(Model.Data, group.Id))) {
+                        <option value="@group.Id" selected="@(Model.GroupId == group.Id)">@StockSearch.GroupPath(Model.Data, group.Id)</option>
+                    }
+                </select>
+            </div>
+            <div class="col-lg-5"><label class="form-label" for="stock-search">جست‌وجو در همه اطلاعات کالا</label><input id="stock-search" name="search" value="@Model.Search" class="form-control" type="search" aria-describedby="stock-search-help" /></div>
+            <div class="col-lg-3 d-flex gap-2"><button type="submit" class="btn btn-primary">جست‌وجو و فیلتر</button><a id="stock-clear" asp-action="Index" class="btn btn-light">پاک کردن</a></div>
+            <div class="col-12"><p id="stock-search-help" class="form-text mb-0">نام، کد کالا، گروه، نام و مقدار مشخصات، موجودی و واحد؛ خروجی‌ها شامل تمام نتایج همین فیلتر هستند.</p></div>
+        </form>
+    </div></section>
+    <div id="stock-filter-error" class="alert alert-danger d-none" role="alert"></div>
+    <div id="stock-results" aria-live="polite" aria-busy="false">
+        @await Html.PartialAsync("_Results", Model)
+    </div>
+</div>
+@foreach (var dispatch in new[] { false, true }) {
+    if (dispatch ? !canDispatch : !canReceive) { continue; }
+    var modalId = dispatch ? "stockDispatchModal" : "stockReceiptModal";
+    var title = dispatch ? "ثبت خروج کالا" : "ثبت ورود کالا";
+    <div class="modal fade stock-movement-modal" id="@modalId" tabindex="-1" aria-labelledby="@(modalId)-title" aria-hidden="true" dir="rtl">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <form asp-action="@(dispatch ? "Dispatch" : "Receipt")" method="post" class="modal-content">
+                <div class="modal-header"><h2 class="modal-title fs-5" id="@(modalId)-title">@title</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button></div>
+                <div class="modal-body">
+                    <input name="groupId" type="hidden" value="@Model.GroupId" /><input name="search" type="hidden" value="@Model.Search" /><input name="page" type="hidden" value="@Model.Page" />
+                    <input name="productId" type="hidden" />
+                    <p class="fw-semibold mb-1" data-product-summary></p><p class="text-muted small" data-stock-summary></p>
+                    <div class="mb-3"><label for="@(modalId)-quantity" class="form-label">مقدار</label><input id="@(modalId)-quantity" name="quantity" type="number" min="0.001" step="0.001" class="form-control form-control-lg" required /></div>
+                    <div><label for="@(modalId)-reason" class="form-label">@(dispatch ? "دلیل خروج" : "شرح (اختیاری)")</label><input id="@(modalId)-reason" name="reason" class="form-control" required="@dispatch" /></div>
+                </div>
+                <div class="modal-footer"><button type="submit" class="btn @(dispatch ? "btn-danger" : "btn-success")">@title</button><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">انصراف</button></div>
+            </form>
+        </div>
+    </div>
+}
+@section Scripts { <script src="~/js/stock.js" asp-append-version="true"></script> }

@@ -1,0 +1,39 @@
+﻿@using KimiaFaravar.Application.Security
+@using KimiaFaravar.Web.Formatting
+@model KimiaFaravar.Web.Models.StockPageViewModel
+@{
+    ViewData["Title"] = "مدیریت موجودی";
+    var canReceive = User.HasClaim("permission", PermissionCodes.InventoryReceive);
+    var canDispatch = User.HasClaim("permission", PermissionCodes.InventoryDispatch);
+    var canOperate = canReceive || canDispatch;
+}
+    <section class="card">
+        <div class="card-header d-flex flex-wrap justify-content-between gap-2"><h2 class="h6 mb-0">موجودی قابل مشاهده</h2><span class="text-muted small">@Model.TotalCount کالا</span></div>
+        <div class="table-responsive"><table class="table table-hover mb-0">
+            <thead><tr><th>SKU</th><th>کالا</th><th>گروه</th><th>مشخصات</th><th>موجودی</th><th>واحد</th>@if (canOperate) { <th>عملیات</th> }</tr></thead>
+            <tbody>
+            @foreach (var product in Model.Data.Products) {
+                <tr>
+                    <td dir="ltr">@product.Sku</td><td class="fw-semibold">@product.Name</td>
+                    <td>@StockSearch.GroupPath(Model.Data, product.ProductGroupId)</td>
+                    <td>@(StockSearch.Specifications(Model.Data, product.Id) is var specs && specs.Length > 0 ? specs : "—")</td>
+                    <td class="fw-bold">@product.Quantity</td><td>@product.BaseUnit</td>
+                    @if (canOperate) {
+                        <td><div class="d-flex flex-wrap gap-2">
+                            @if (canReceive) { <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#stockReceiptModal" data-product-id="@product.Id" data-product-name="@product.Name" data-product-sku="@product.Sku" data-product-stock="@product.Quantity @product.BaseUnit">ثبت ورود</button> }
+                            @if (canDispatch) { <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#stockDispatchModal" data-product-id="@product.Id" data-product-name="@product.Name" data-product-sku="@product.Sku" data-product-stock="@product.Quantity @product.BaseUnit">ثبت خروج</button> }
+                        </div></td>
+                    }
+                </tr>
+            }
+            @if (Model.Data.Products.Count == 0) { <tr><td colspan="@(canOperate ? 7 : 6)" class="text-center text-muted py-4">کالایی با این شرایط و سطح دسترسی پیدا نشد.</td></tr> }
+            </tbody>
+        </table></div>
+        @if (Model.TotalPages > 1) {
+            <nav class="d-flex flex-wrap justify-content-center align-items-center gap-3 p-3" aria-label="صفحه‌بندی کالاها">
+                @if (Model.Page > 1) { <a asp-action="Index" asp-route-groupId="@Model.GroupId" asp-route-search="@Model.Search" asp-route-page="@(Model.Page - 1)" class="btn btn-outline-primary">قبلی</a> }
+                <span>صفحه @Model.Page از @Model.TotalPages</span>
+                @if (Model.Page < Model.TotalPages) { <a asp-action="Index" asp-route-groupId="@Model.GroupId" asp-route-search="@Model.Search" asp-route-page="@(Model.Page + 1)" class="btn btn-outline-primary">بعدی</a> }
+            </nav>
+        }
+    </section>

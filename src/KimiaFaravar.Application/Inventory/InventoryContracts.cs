@@ -31,6 +31,7 @@ public interface IInventoryMvpService
     Task<InventorySnapshot> GetSnapshotAsync(CancellationToken ct = default);
     Task<IReadOnlyCollection<EffectiveSpecificationDto>> GetEffectiveSpecificationsAsync(long groupId, CancellationToken ct = default);
     Task<long> CreateGroupAsync(CreateProductGroupCommand command, CancellationToken ct = default);
+    Task UpdateGroupVisibilityAsync(long groupId, bool visibleToInternalSales, bool visibleToMarketDistribution, CancellationToken ct = default);
     Task<long> CreateSpecificationAsync(CreateSpecificationCommand command, CancellationToken ct = default);
     Task<long> CreateSpecificationOptionAsync(CreateSpecificationOptionCommand command, CancellationToken ct = default);
     Task<long> CreateProductAsync(CreateProductCommand command, CancellationToken ct = default);

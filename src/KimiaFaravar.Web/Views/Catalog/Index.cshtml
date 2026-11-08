@@ -32,6 +32,7 @@
     var groups = Model.Data.Groups.OrderBy(GroupPath).ToArray();
     var specifications = Model.Data.Specifications.OrderBy(item => item.Name).ToArray();
     var canManageGroups = User.HasClaim("permission", PermissionCodes.ProductGroupsManage);
+    var canEditGroupVisibility = canManageGroups && (User.IsInRole(RoleCodes.CEO) || User.IsInRole(RoleCodes.WarehouseManager));
     var canManageProducts = User.HasClaim("permission", PermissionCodes.ProductsManage);
     var canManageSpecifications = User.HasClaim("permission", PermissionCodes.SpecificationsManage);
     var firstTab = canManageProducts ? "new-product" : canManageGroups ? "groups" : "catalog-view";
@@ -51,7 +52,7 @@
             <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#new-spec" type="button">مشخصات</button></li>
             <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#new-option" type="button">گزینه‌های مشخصات</button></li>
         }
-        @if (!canManageProducts && !canManageGroups) { <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#catalog-view" type="button">کالاهای قابل نمایش</button></li> }
+        <li class="nav-item"><button class="nav-link @(firstTab == "catalog-view" ? "active" : "")" data-bs-toggle="pill" data-bs-target="#catalog-view" type="button">کالاهای قابل نمایش</button></li>
     </ul>
 
     <div class="tab-content">
@@ -73,6 +74,7 @@
                     <button type="submit" class="btn btn-primary btn-lg mt-4 px-5">ثبت کالا</button>
                 </form>
             </div></div>
+            @await Html.PartialAsync("_CatalogProducts", Model, new ViewDataDictionary(ViewData) { ["FilterByGroup"] = true })
         </section> }
 
         <section class="tab-pane fade @(firstTab == "groups" ? "show active" : "")" id="groups">
@@ -99,6 +101,14 @@
                         @if (group.VisibleToInternalSales) { <span class="badge text-bg-info ms-1">فروش داخلی</span> }
                         @if (group.VisibleToMarketDistribution) { <span class="badge text-bg-warning ms-1">فروش بازار</span> }
                         @if (!group.VisibleToInternalSales && !group.VisibleToMarketDistribution) { <span class="badge text-bg-secondary">فقط مدیریت</span> }
+                        @if (canEditGroupVisibility) {
+                            <button type="button" class="btn btn-sm btn-outline-primary d-block mt-2"
+                                    data-bs-toggle="modal" data-bs-target="#groupVisibilityModal"
+                                    data-group-id="@group.Id" data-group-name="@GroupPath(group)"
+                                    data-internal-sales="@group.VisibleToInternalSales.ToString().ToLowerInvariant()"
+                                    data-market-sales="@group.VisibleToMarketDistribution.ToString().ToLowerInvariant()"
+                                    aria-label="ویرایش سطح نمایش گروه @group.Name">ویرایش سطح نمایش</button>
+                        }
                     </td></tr>
                 }
                 @if (groups.Length == 0) { <tr><td colspan="4" class="text-center text-muted py-4">گروهی برای نمایش وجود ندارد.</td></tr> }
@@ -118,15 +128,37 @@
             <div class="col-md-6"><label class="form-label">گزینه</label><input name="value" class="form-control" required /></div><div class="col-12"><button class="btn btn-primary">ثبت گزینه</button></div>
         </form></div></div></section> }
 
-        <section class="tab-pane fade @(!canManageProducts && !canManageGroups ? "show active" : "")" id="catalog-view"></section>
+        <section class="tab-pane fade @(firstTab == "catalog-view" ? "show active" : "")" id="catalog-view">
+            @await Html.PartialAsync("_CatalogProducts", Model)
+        </section>
     </div>
 
-    <section class="card border-0 shadow-sm mt-4"><div class="card-body"><h2 class="h5 mb-3">کالاهای قابل نمایش</h2><div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>SKU</th><th>نام کالا</th><th>مسیر گروه</th><th>مشخصات</th><th>واحد</th></tr></thead><tbody>
-    @foreach (var product in Model.Data.Products.OrderByDescending(product => product.Id)) {
-        var values = Model.Data.ProductValues.Where(value => value.ProductId == product.Id).ToArray(); var productGroup = groupMap.GetValueOrDefault(product.ProductGroupId);
-        <tr><td dir="ltr">@product.Sku</td><td>@product.Name</td><td>@(productGroup is null ? "—" : GroupPath(productGroup))</td><td>@foreach (var value in values) { var spec = specifications.FirstOrDefault(item => item.Id == value.SpecificationId); var display = spec?.DataType == SpecificationDataType.Select && long.TryParse(value.Value, out var optionId) ? Model.Data.SpecificationOptions.FirstOrDefault(option => option.Id == optionId)?.Value ?? value.Value : value.Value; <span class="badge bg-light text-dark border me-1">@(spec?.Name): @display</span> }</td><td>@product.BaseUnit</td></tr>
-    }
-    @if (Model.Data.Products.Count == 0) { <tr><td colspan="5" class="text-center text-muted py-4">کالایی برای نمایش وجود ندارد.</td></tr> }
-    </tbody></table></div></div></section>
+
 </div>
+@if (canEditGroupVisibility) {
+    <div class="modal fade" id="groupVisibilityModal" tabindex="-1" aria-labelledby="groupVisibilityTitle" aria-describedby="groupVisibilityHelp" aria-hidden="true" dir="rtl">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <form asp-action="UpdateGroupVisibility" method="post" class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title fs-5" id="groupVisibilityTitle">ویرایش سطح نمایش گروه</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="fw-semibold" id="groupVisibilityName"></p>
+                        <input type="hidden" name="groupId" id="groupVisibilityId" />
+                        <fieldset>
+                            <legend class="fs-6">قابل نمایش برای</legend>
+                            <label class="form-check py-2"><input id="groupVisibilityInternal" name="visibleToInternalSales" value="true" class="form-check-input" type="checkbox" /><span class="form-check-label">فروش داخلی</span></label>
+                            <label class="form-check py-2"><input id="groupVisibilityMarket" name="visibleToMarketDistribution" value="true" class="form-check-input" type="checkbox" /><span class="form-check-label">فروش بازار</span></label>
+                        </fieldset>
+                        <p class="form-text mb-0" id="groupVisibilityHelp">اگر هیچ‌کدام انتخاب نشود، گروه فقط برای مدیرعامل و مدیر انبار قابل مشاهده است.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">ذخیره تغییرات</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">انصراف</button>
+                    </div>
+                </form>
+        </div>
+    </div>
+}
 @section Scripts { <script src="~/js/catalog-specifications.js" asp-append-version="true"></script> }
