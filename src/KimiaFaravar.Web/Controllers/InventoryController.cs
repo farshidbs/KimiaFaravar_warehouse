@@ -56,10 +56,18 @@ public sealed class InventoryController(IInventoryMvpService service, IInventory
     }
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = PermissionCodes.InventoryReceive)]
-    public Task<IActionResult> Receipt(long productId, decimal quantity, string? reason, CancellationToken ct) => ExecuteAsync(() => service.PostReceiptAsync(new(productId, quantity, reason), ct), "ورود کالا ثبت شد.");
+    public async Task<IActionResult> Receipt(long productId, decimal quantity, string? reason, CancellationToken ct)
+    {
+        if (!(await GetVisibleSnapshotAsync(ct)).Products.Any(product => product.Id == productId)) return Forbid();
+        return await ExecuteAsync(() => service.PostReceiptAsync(new(productId, quantity, reason), ct), "ورود کالا ثبت شد.");
+    }
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = PermissionCodes.InventoryDispatch)]
-    public Task<IActionResult> Dispatch(long productId, decimal quantity, string? reason, CancellationToken ct) => ExecuteAsync(() => service.PostDispatchAsync(new(productId, quantity, reason), ct), "خروج کالا ثبت شد.");
+    public async Task<IActionResult> Dispatch(long productId, decimal quantity, string? reason, CancellationToken ct)
+    {
+        if (!(await GetVisibleSnapshotAsync(ct)).Products.Any(product => product.Id == productId)) return Forbid();
+        return await ExecuteAsync(() => service.PostDispatchAsync(new(productId, quantity, reason), ct), "خروج کالا ثبت شد.");
+    }
 
     private async Task<InventorySnapshot> GetVisibleSnapshotAsync(CancellationToken ct)
     {

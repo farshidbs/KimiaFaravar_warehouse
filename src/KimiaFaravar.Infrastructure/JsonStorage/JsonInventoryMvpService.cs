@@ -138,10 +138,26 @@ internal sealed class JsonInventoryMvpService : IInventoryMvpService
                 throw new InventoryValidationException("کالایی با همین ترکیب مشخصات کلیدی قبلاً ثبت شده است.");
 
             var productId = NextId(data.Products.Select(p => p.Id));
-            data.Products.Add(new(productId, command.ProductGroupId, sku, command.Name.Trim(), command.BaseUnit.Trim(), 0));
+            data.Products.Add(new(productId, command.ProductGroupId, sku, command.Name.Trim(), command.BaseUnit.Trim(), 0,
+                command.VisibleToInternalSales, command.VisibleToMarketDistribution));
             foreach (var (specId, value) in normalized)
                 data.ProductValues.Add(new(productId, specId, value));
             return productId;
+        }, ct);
+    }
+
+    public async Task UpdateProductVisibilityAsync(long productId, bool visibleToInternalSales, bool visibleToMarketDistribution, CancellationToken ct = default)
+    {
+        await MutateAsync<object?>(data =>
+        {
+            var index = data.Products.FindIndex(product => product.Id == productId);
+            if (index < 0) throw new InventoryValidationException("کالا وجود ندارد.");
+            data.Products[index] = data.Products[index] with
+            {
+                VisibleToInternalSales = visibleToInternalSales,
+                VisibleToMarketDistribution = visibleToMarketDistribution
+            };
+            return null;
         }, ct);
     }
 
@@ -216,7 +232,8 @@ internal sealed class JsonInventoryMvpService : IInventoryMvpService
     private static InventorySnapshot ToSnapshot(JsonInventoryData d) => new(
         d.Groups.Select(x => new ProductGroupDto(x.Id, x.Name, x.Code, x.ParentId, x.VisibleToInternalSales, x.VisibleToMarketDistribution)).ToArray(),
         d.Specifications.Select(x => new SpecificationDto(x.Id, x.ProductGroupId, x.Name, x.Code, x.DataType, x.IsRequired, x.IsVariantKey)).ToArray(),
-        d.Products.Select(x => new ProductDto(x.Id, x.ProductGroupId, x.Sku, x.Name, x.BaseUnit, x.Quantity)).ToArray(),
+        d.Products.Select(x => new ProductDto(x.Id, x.ProductGroupId, x.Sku, x.Name, x.BaseUnit, x.Quantity,
+            x.VisibleToInternalSales, x.VisibleToMarketDistribution)).ToArray(),
         d.Movements.OrderByDescending(x => x.CreatedAt).Select(x =>
         {
             var product = d.Products.SingleOrDefault(p => p.Id == x.ProductId);
@@ -281,7 +298,8 @@ internal sealed class JsonInventoryMvpService : IInventoryMvpService
     private sealed record JsonSpecification(long Id, long ProductGroupId, string Name, string Code,
         SpecificationDataType DataType, bool IsRequired, bool IsVariantKey);
     private sealed record JsonSpecificationOption(long Id, long SpecificationId, string Value);
-    private sealed record JsonProduct(long Id, long ProductGroupId, string Sku, string Name, string BaseUnit, decimal Quantity);
+    private sealed record JsonProduct(long Id, long ProductGroupId, string Sku, string Name, string BaseUnit, decimal Quantity,
+        bool VisibleToInternalSales = true, bool VisibleToMarketDistribution = true);
     private sealed record JsonProductValue(long ProductId, long SpecificationId, string Value);
     private sealed record JsonMovement(long Id, long ProductId, MovementType Type, decimal Quantity, string Unit, string? Reason, DateTimeOffset CreatedAt);
 }

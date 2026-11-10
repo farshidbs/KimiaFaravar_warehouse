@@ -1,6 +1,8 @@
 ﻿@using KimiaFaravar.Application.Inventory
+@using KimiaFaravar.Application.Security
 @model KimiaFaravar.Web.Models.CatalogPageViewModel
 @{
+    var canEditVisibility = User.HasClaim("permission", PermissionCodes.ProductsManage) && (User.IsInRole(RoleCodes.CEO) || User.IsInRole(RoleCodes.WarehouseManager));
     var filterByGroup = ViewData["FilterByGroup"] is true;
     var groupMap = Model.Data.Groups.ToDictionary(group => group.Id);
     var specifications = Model.Data.Specifications.ToArray();
@@ -20,10 +22,10 @@
 }
     <section id="@(filterByGroup ? "group-products" : "all-products")" class="card border-0 shadow-sm mt-4"><div class="card-body"><h2 class="h5 mb-3">@(filterByGroup ? "کالاهای گروه انتخاب‌شده" : "کالاهای قابل نمایش")</h2>
     @if (filterByGroup) { <p id="group-products-status" class="text-muted" role="status">برای نمایش کالاهای موجود، گروه کالا را انتخاب کنید.</p> }
-    <div class="table-responsive @(filterByGroup ? "d-none" : "")"><table class="table table-hover align-middle"><thead><tr><th>SKU</th><th>نام کالا</th><th>مسیر گروه</th><th>مشخصات</th><th>واحد</th></tr></thead><tbody>
+    <div class="table-responsive @(filterByGroup ? "d-none" : "")"><table class="table table-hover align-middle"><thead><tr><th>SKU</th><th>نام کالا</th><th>مسیر گروه</th><th>مشخصات</th><th>واحد</th>@if (canEditVisibility) { <th>&#1587;&#1591;&#1581; &#1606;&#1605;&#1575;&#1740;&#1588;</th> }</tr></thead><tbody>
     @foreach (var product in Model.Data.Products.OrderByDescending(product => product.Id)) {
         var values = Model.Data.ProductValues.Where(value => value.ProductId == product.Id).ToArray(); var productGroup = groupMap.GetValueOrDefault(product.ProductGroupId);
-        <tr data-product-group="@product.ProductGroupId" class="@(filterByGroup ? "d-none" : "")"><td dir="ltr">@product.Sku</td><td>@product.Name</td><td>@(productGroup is null ? "—" : GroupPath(productGroup))</td><td>@foreach (var value in values) { var spec = specifications.FirstOrDefault(item => item.Id == value.SpecificationId); var display = spec?.DataType == SpecificationDataType.Select && long.TryParse(value.Value, out var optionId) ? Model.Data.SpecificationOptions.FirstOrDefault(option => option.Id == optionId)?.Value ?? value.Value : value.Value; <span class="badge bg-light text-dark border me-1">@(spec?.Name): @display</span> }</td><td>@product.BaseUnit</td></tr>
+        <tr data-product-group="@product.ProductGroupId" class="@(filterByGroup ? "d-none" : "")"><td dir="ltr">@product.Sku</td><td>@product.Name</td><td>@(productGroup is null ? "—" : GroupPath(productGroup))</td><td>@foreach (var value in values) { var spec = specifications.FirstOrDefault(item => item.Id == value.SpecificationId); var display = spec?.DataType == SpecificationDataType.Select && long.TryParse(value.Value, out var optionId) ? Model.Data.SpecificationOptions.FirstOrDefault(option => option.Id == optionId)?.Value ?? value.Value : value.Value; <span class="badge bg-light text-dark border me-1">@(spec?.Name): @display</span> }</td><td>@product.BaseUnit</td>@if (canEditVisibility) { <td>@await Html.PartialAsync("_ProductVisibility", product)</td> }</tr>
     }
-    @if (!filterByGroup && Model.Data.Products.Count == 0) { <tr><td colspan="5" class="text-center text-muted py-4">کالایی برای نمایش وجود ندارد.</td></tr> }
+    @if (!filterByGroup && Model.Data.Products.Count == 0) { <tr><td colspan="@(canEditVisibility ? 6 : 5)" class="text-center text-muted py-4">کالایی برای نمایش وجود ندارد.</td></tr> }
     </tbody></table></div></div></section>

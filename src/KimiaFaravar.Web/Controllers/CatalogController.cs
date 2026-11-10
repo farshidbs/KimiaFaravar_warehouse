@@ -30,6 +30,24 @@ public sealed class CatalogController(IInventoryMvpService service) : Controller
         bool visibleToMarketDistribution, CancellationToken ct) =>
         ExecuteAsync(() => service.CreateGroupAsync(new(name, code, parentId, visibleToInternalSales, visibleToMarketDistribution), ct));
 
+    [HttpGet, Authorize(Policy = PermissionCodes.SpecificationsManage)]
+    public async Task<IActionResult> GroupSpecifications(long groupId, CancellationToken ct)
+    {
+        try
+        {
+            var effective = await service.GetEffectiveSpecificationsAsync(groupId, ct);
+            var data = await service.GetSnapshotAsync(ct);
+            return Json(effective.Select(spec =>
+            {
+                var definition = data.Specifications.First(item => item.Id == spec.Id);
+                return new { spec.Id, spec.Name, spec.Code, spec.DataType, spec.IsRequired, spec.IsVariantKey, spec.Options,
+                    inherited = definition.ProductGroupId != groupId,
+                    groupName = data.Groups.FirstOrDefault(group => group.Id == definition.ProductGroupId)?.Name };
+            }));
+        }
+        catch (InventoryValidationException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+
     [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = PermissionCodes.ProductGroupsManage)]
     [Authorize(Roles = RoleCodes.CEO + "," + RoleCodes.WarehouseManager)]
     public async Task<IActionResult> UpdateGroupVisibility(long groupId, bool visibleToInternalSales,
@@ -50,12 +68,40 @@ public sealed class CatalogController(IInventoryMvpService service) : Controller
         ExecuteAsync(() => service.CreateSpecificationAsync(new(productGroupId, name, code, dataType, isRequired, isVariantKey), ct));
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = PermissionCodes.SpecificationsManage)]
-    public Task<IActionResult> CreateSpecificationOption(long specificationId, string value, CancellationToken ct) =>
-        ExecuteAsync(() => service.CreateSpecificationOptionAsync(new(specificationId, value), ct));
+    public async Task<IActionResult> CreateSpecificationOption(long specificationId, string value, CancellationToken ct)
+    {
+        var ajax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+        try
+        {
+            var id = await service.CreateSpecificationOptionAsync(new(specificationId, value), ct);
+            if (ajax) return Json(new { id, specificationId, value = value.Trim() });
+            TempData["Success"] = "گزینه جدید ثبت شد.";
+        }
+        catch (InventoryValidationException ex)
+        {
+            if (ajax) return BadRequest(new { error = ex.Message });
+            TempData["Error"] = ex.Message;
+        }
+        return Redirect(Url.Action(nameof(Index)) + "#new-option");
+    }
+
+    [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = PermissionCodes.ProductsManage)]
+    [Authorize(Roles = RoleCodes.CEO + "," + RoleCodes.WarehouseManager)]
+    public async Task<IActionResult> UpdateProductVisibility(long productId, bool visibleToInternalSales,
+        bool visibleToMarketDistribution, CancellationToken ct)
+    {
+        try
+        {
+            await service.UpdateProductVisibilityAsync(productId, visibleToInternalSales, visibleToMarketDistribution, ct);
+            TempData["Success"] = "سطح نمایش کالا ذخیره شد.";
+        }
+        catch (InventoryValidationException ex) { TempData["Error"] = ex.Message; }
+        return Redirect(Url.Action(nameof(Index)) + "#catalog-view");
+    }
 
     [HttpPost, ValidateAntiForgeryToken, Authorize(Policy = PermissionCodes.ProductsManage)]
     public async Task<IActionResult> CreateProduct(long productGroupId, string sku, string name,
-        string baseUnit, string? valuesJson, CancellationToken ct)
+        string baseUnit, string? valuesJson, bool visibleToInternalSales, bool visibleToMarketDistribution, CancellationToken ct)
     {
         try
         {
@@ -63,7 +109,8 @@ public sealed class CatalogController(IInventoryMvpService service) : Controller
                 ? new Dictionary<long, string>()
                 : JsonSerializer.Deserialize<Dictionary<long, string>>(valuesJson)
                   ?? new Dictionary<long, string>();
-            await service.CreateProductAsync(new(productGroupId, sku, name, baseUnit, values), ct);
+            await service.CreateProductAsync(new(productGroupId, sku, name, baseUnit, values,
+                visibleToInternalSales, visibleToMarketDistribution), ct);
             TempData["Success"] = "کالای جدید با مشخصات انتخاب‌شده ثبت شد.";
         }
         catch (JsonException) { TempData["Error"] = "مقادیر مشخصات کالا معتبر نیستند."; }

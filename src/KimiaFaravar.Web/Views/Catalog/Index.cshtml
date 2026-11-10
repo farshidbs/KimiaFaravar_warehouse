@@ -68,6 +68,14 @@
                         <div class="col-md-6"><label class="form-label" for="product-sku">کد یکتا / SKU</label><input id="product-sku" name="sku" class="form-control" maxlength="80" required dir="ltr" /></div>
                         <div class="col-md-6"><label class="form-label" for="product-unit">واحد پایه</label><select id="product-unit" name="baseUnit" class="form-select"><option>عدد</option><option>کیلوگرم</option><option>گرم</option><option>متر</option><option>سانتی‌متر</option><option>کارتن</option><option>بسته</option><option>رول</option></select></div>
                     </div>
+                    <fieldset class="border rounded-3 p-3 mt-4">
+                        <legend class="float-none w-auto fs-6 px-2">قابل نمایش برای</legend>
+                        <div class="d-flex flex-wrap gap-4">
+                            <label class="form-check"><input name="visibleToInternalSales" value="true" class="form-check-input" type="checkbox" checked /><span class="form-check-label">فروش داخلی</span></label>
+                            <label class="form-check"><input name="visibleToMarketDistribution" value="true" class="form-check-input" type="checkbox" checked /><span class="form-check-label">فروش و توزیع بازار</span></label>
+                        </div>
+                        <p class="form-text mb-0">نمایش کالا به مجاز بودن گروه هم وابسته است. بدون انتخاب هر دو گزینه، فقط مدیرعامل و مدیر انبار کالا را می‌بینند.</p>
+                    </fieldset>
                     <hr class="my-4" /><h3 class="h6 fw-bold">مشخصات اختصاصی کالا</h3>
                     <div class="row g-3 mt-1" id="dynamic-specifications" aria-live="polite"><p class="text-muted">برای نمایش مشخصات، گروه را انتخاب کنید.</p></div>
                     <input type="hidden" name="valuesJson" id="product-values-json" /><div id="product-form-error" class="alert alert-danger mt-3 d-none" role="alert"></div>
@@ -118,15 +126,39 @@
 
         @if (canManageSpecifications) {
         <section class="tab-pane fade" id="new-spec"><div class="card border-0 shadow-sm"><div class="card-body p-4"><h2 class="h5">تعریف مشخصه برای گروه</h2><form asp-action="CreateSpecification" method="post" class="row g-3">
-            <div class="col-md-4"><label class="form-label">گروه</label><select name="productGroupId" class="form-select" required>@foreach (var group in groups) { <option value="@group.Id">@GroupPath(group)</option> }</select></div>
+            <div class="col-md-4"><label class="form-label" for="specification-group">گروه</label><select id="specification-group" name="productGroupId" class="form-select" required>@foreach (var group in groups) { <option value="@group.Id">@GroupPath(group)</option> }</select></div>
             <div class="col-md-4"><label class="form-label">نام مشخصه</label><input name="name" class="form-control" required /></div><div class="col-md-4"><label class="form-label">کد مشخصه</label><input name="code" class="form-control" dir="ltr" required /></div>
             <div class="col-md-4"><label class="form-label">نوع داده</label><select name="dataType" class="form-select"><option value="0">متن</option><option value="1">عدد اعشاری</option><option value="2">عدد صحیح</option><option value="3">بله / خیر</option><option value="4">لیست انتخابی</option></select></div>
             <div class="col-md-4 d-flex align-items-end"><label class="form-check"><input name="isRequired" value="true" class="form-check-input" type="checkbox" /><span class="form-check-label">مقدار اجباری</span></label></div><div class="col-md-4 d-flex align-items-end"><label class="form-check"><input name="isVariantKey" value="true" class="form-check-input" type="checkbox" /><span class="form-check-label">کلید یکتایی کالا</span></label></div>
-            <div class="col-12"><button class="btn btn-primary">ثبت مشخصه</button></div></form></div></div></section>
-        <section class="tab-pane fade" id="new-option"><div class="card border-0 shadow-sm"><div class="card-body p-4"><h2 class="h5">افزودن گزینه به مشخصه انتخابی</h2><form asp-action="CreateSpecificationOption" method="post" class="row g-3">
-            <div class="col-md-6"><label class="form-label">مشخصه از نوع لیست</label><select name="specificationId" class="form-select" required>@foreach (var item in specifications.Where(item => item.DataType == SpecificationDataType.Select)) { <option value="@item.Id">@item.Name — @(groupMap.GetValueOrDefault(item.ProductGroupId)?.Name)</option> }</select></div>
-            <div class="col-md-6"><label class="form-label">گزینه</label><input name="value" class="form-control" required /></div><div class="col-12"><button class="btn btn-primary">ثبت گزینه</button></div>
-        </form></div></div></section> }
+            <div class="col-12"><button class="btn btn-primary">ثبت مشخصه</button></div></form></div></div>
+            <section class="card border-0 shadow-sm mt-4"><div class="card-body">
+                <h2 class="h5 mb-3">مشخصات گروه انتخاب‌شده</h2>
+                <p id="group-specifications-status" class="text-muted" role="status" aria-live="polite">گروه را برای مشاهده مشخصات انتخاب کنید.</p>
+                <div id="group-specifications-table" class="table-responsive d-none"><table class="table table-hover align-middle">
+                    <thead><tr><th>مشخصه</th><th>نوع داده</th><th>گزینه‌ها</th><th>اجباری</th><th>کلید یکتایی</th><th>گروه تعریف‌کننده</th></tr></thead>
+                    <tbody id="group-specifications-rows"></tbody>
+                </table></div>
+            </div></section>
+        </section>
+        <section class="tab-pane fade" id="new-option"><div class="card border-0 shadow-sm"><div class="card-body p-4"><h2 class="h5">افزودن گزینه به مشخصه انتخابی</h2>
+        <div id="option-feedback" class="alert d-none" role="status" aria-live="polite"></div>
+        <form id="specification-option-form" asp-action="CreateSpecificationOption" method="post" class="row g-3">
+            <div class="col-md-6"><label class="form-label" for="option-specification">مشخصه از نوع لیست</label><select id="option-specification" name="specificationId" class="form-select" required>@foreach (var item in specifications.Where(item => item.DataType == SpecificationDataType.Select)) { <option value="@item.Id">@item.Name — @(groupMap.GetValueOrDefault(item.ProductGroupId)?.Name)</option> }</select></div>
+            <div class="col-md-6"><label class="form-label" for="option-value">گزینه</label><input id="option-value" name="value" class="form-control" required /></div><div class="col-12"><button class="btn btn-primary">ثبت گزینه</button></div>
+        </form></div></div>
+        <section class="card border-0 shadow-sm mt-4"><div class="card-body">
+            <h2 class="h5 mb-3">مشخصه‌های لیستی و گزینه‌ها</h2>
+            <div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>گروهِ مشخصه</th><th>مشخصه نوع لیست</th><th>گزینه‌ها</th></tr></thead><tbody>
+                @foreach (var spec in specifications.Where(item => item.DataType == SpecificationDataType.Select)) {
+                    var options = Model.Data.SpecificationOptions.Where(option => option.SpecificationId == spec.Id).ToArray();
+                    <tr><td>@(groupMap.TryGetValue(spec.ProductGroupId, out var specGroup) ? GroupPath(specGroup) : "—")</td><td>@spec.Name</td><td data-options-for="@spec.Id">
+                        @foreach (var option in options) { <span class="badge bg-light text-dark border me-1" data-option-id="@option.Id">@option.Value</span> }
+                        @if (options.Length == 0) { <span class="text-muted" data-options-empty>هنوز گزینه‌ای ثبت نشده است.</span> }
+                    </td></tr>
+                }
+                @if (!specifications.Any(item => item.DataType == SpecificationDataType.Select)) { <tr><td colspan="3" class="text-center text-muted py-4">هنوز مشخصه‌ای از نوع لیست تعریف نشده است.</td></tr> }
+            </tbody></table></div>
+        </div></section></section> }
 
         <section class="tab-pane fade @(firstTab == "catalog-view" ? "show active" : "")" id="catalog-view">
             @await Html.PartialAsync("_CatalogProducts", Model)
@@ -158,6 +190,25 @@
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">انصراف</button>
                     </div>
                 </form>
+        </div>
+    </div>
+}
+@if (canManageProducts && (User.IsInRole(RoleCodes.CEO) || User.IsInRole(RoleCodes.WarehouseManager))) {
+    <div class="modal fade product-visibility-modal" id="productVisibilityModal" tabindex="-1" aria-labelledby="productVisibilityTitle" aria-describedby="productVisibilityHelp" aria-hidden="true" dir="rtl">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <form asp-action="UpdateProductVisibility" method="post" class="modal-content">
+                <div class="modal-header"><h2 class="modal-title fs-5" id="productVisibilityTitle">ویرایش سطح نمایش کالا</h2><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button></div>
+                <div class="modal-body">
+                    <p class="fw-semibold" id="productVisibilityName"></p>
+                    <input type="hidden" name="productId" id="productVisibilityId" />
+                    <fieldset><legend class="fs-6">قابل نمایش برای</legend>
+                        <label class="form-check d-flex py-2"><input id="productVisibilityInternal" name="visibleToInternalSales" value="true" class="form-check-input" type="checkbox" /><span class="form-check-label">فروش داخلی</span></label>
+                        <label class="form-check d-flex py-2"><input id="productVisibilityMarket" name="visibleToMarketDistribution" value="true" class="form-check-input" type="checkbox" /><span class="form-check-label">فروش و توزیع بازار</span></label>
+                    </fieldset>
+                    <p class="form-text mb-0" id="productVisibilityHelp">کالا فقط در صورت مجاز بودن گروه و انتخاب گزینهٔ مربوط به نقش دیده می‌شود. مدیرعامل و مدیر انبار همیشه همهٔ کالاها را می‌بینند.</p>
+                </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-primary">ذخیره تغییرات</button><button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">انصراف</button></div>
+            </form>
         </div>
     </div>
 }

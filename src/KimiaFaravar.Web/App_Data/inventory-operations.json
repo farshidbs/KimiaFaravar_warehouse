@@ -4,25 +4,33 @@
       "id": 1,
       "name": "\u0648\u0627\u0634\u0631 \u0635\u0646\u0639\u062A\u06CC",
       "code": "WASHER-1793993219",
-      "parentId": null
+      "parentId": null,
+      "visibleToInternalSales": false,
+      "visibleToMarketDistribution": false
     },
     {
       "id": 2,
       "name": "\u0635\u0641\u062D\u0647 \u0641\u0648\u0644\u0627\u062F\u06CC",
       "code": "FOLADISAFE",
-      "parentId": null
+      "parentId": null,
+      "visibleToInternalSales": false,
+      "visibleToMarketDistribution": false
     },
     {
       "id": 3,
       "name": "\u0635\u0641\u062D\u0647 \u0641\u0648\u0644\u0627\u062F\u06CC \u0646\u0648\u0639 2",
       "code": "SFLD2",
-      "parentId": 2
+      "parentId": 2,
+      "visibleToInternalSales": false,
+      "visibleToMarketDistribution": false
     },
     {
       "id": 4,
       "name": "\u06AF\u0631\u0648\u0647 \u062A\u0633\u062A",
       "code": "TESTGROUP",
-      "parentId": null
+      "parentId": null,
+      "visibleToInternalSales": false,
+      "visibleToMarketDistribution": false
     }
   ],
   "specifications": [
@@ -52,9 +60,34 @@
       "dataType": 0,
       "isRequired": true,
       "isVariantKey": false
+    },
+    {
+      "id": 4,
+      "productGroupId": 1,
+      "name": "\u062C\u0646\u0633",
+      "code": "JENS",
+      "dataType": 4,
+      "isRequired": true,
+      "isVariantKey": false
     }
   ],
-  "specificationOptions": [],
+  "specificationOptions": [
+    {
+      "id": 1,
+      "specificationId": 4,
+      "value": "\u0641\u0644\u0632\u06CC"
+    },
+    {
+      "id": 2,
+      "specificationId": 4,
+      "value": "\u0641\u0648\u0644\u0627\u062F\u06CC"
+    },
+    {
+      "id": 3,
+      "specificationId": 4,
+      "value": "\u0645\u0633\u06CC"
+    }
+  ],
   "products": [
     {
       "id": 1,
@@ -70,7 +103,7 @@
       "sku": "TEST11",
       "name": "test1",
       "baseUnit": "\u0645\u062A\u0631",
-      "quantity": 12
+      "quantity": 22
     },
     {
       "id": 3,
@@ -200,6 +233,15 @@
       "unit": "\u0639\u062F\u062F",
       "reason": "\u062A\u0648\u0644\u06CC\u062F \u062C\u0646\u0648\u0628 \u0633\u0641\u0627\u0631\u0633 2354",
       "createdAt": "2026-11-07T18:20:19.2302582+00:00"
+    },
+    {
+      "id": 10,
+      "productId": 2,
+      "type": 0,
+      "quantity": 10,
+      "unit": "\u0645\u062A\u0631",
+      "reason": "\u0627\u0632 \u0627\u0646\u0628\u0627\u0631 \u0634\u0645\u0627\u0631\u0647 3",
+      "createdAt": "2026-11-08T05:26:57.6033493+00:00"
     }
   ]
 }

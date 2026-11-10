@@ -7,7 +7,8 @@ public sealed record ProductGroupDto(long Id, string Name, string Code, long? Pa
 public sealed record SpecificationDto(long Id, long ProductGroupId, string Name, string Code, SpecificationDataType DataType, bool IsRequired, bool IsVariantKey);
 public sealed record SpecificationOptionDto(long Id, long SpecificationId, string Value);
 public sealed record ProductSpecificationValueDto(long ProductId, long SpecificationId, string Value);
-public sealed record ProductDto(long Id, long ProductGroupId, string Sku, string Name, string BaseUnit, decimal Quantity);
+public sealed record ProductDto(long Id, long ProductGroupId, string Sku, string Name, string BaseUnit, decimal Quantity,
+    bool VisibleToInternalSales = true, bool VisibleToMarketDistribution = true);
 public sealed record StockMovementDto(long Id, long ProductId, string ProductName, MovementType Type, decimal Quantity, string Unit, string? Reason, DateTimeOffset CreatedAt);
 public sealed record InventorySnapshot(
     IReadOnlyCollection<ProductGroupDto> Groups,
@@ -20,7 +21,8 @@ public sealed record InventorySnapshot(
 public sealed record CreateProductGroupCommand(string Name, string Code, long? ParentId, bool VisibleToInternalSales, bool VisibleToMarketDistribution);
 public sealed record CreateSpecificationCommand(long ProductGroupId, string Name, string Code, SpecificationDataType DataType, bool IsRequired, bool IsVariantKey);
 public sealed record CreateSpecificationOptionCommand(long SpecificationId, string Value);
-public sealed record CreateProductCommand(long ProductGroupId, string Sku, string Name, string BaseUnit, IReadOnlyDictionary<long, string>? SpecificationValues = null);
+public sealed record CreateProductCommand(long ProductGroupId, string Sku, string Name, string BaseUnit, IReadOnlyDictionary<long, string>? SpecificationValues = null,
+    bool VisibleToInternalSales = true, bool VisibleToMarketDistribution = true);
 public sealed record PostMovementCommand(long ProductId, decimal Quantity, string? Reason);
 public sealed record EffectiveSpecificationDto(
     long Id, string Name, string Code, SpecificationDataType DataType,
@@ -35,6 +37,7 @@ public interface IInventoryMvpService
     Task<long> CreateSpecificationAsync(CreateSpecificationCommand command, CancellationToken ct = default);
     Task<long> CreateSpecificationOptionAsync(CreateSpecificationOptionCommand command, CancellationToken ct = default);
     Task<long> CreateProductAsync(CreateProductCommand command, CancellationToken ct = default);
+    Task UpdateProductVisibilityAsync(long productId, bool visibleToInternalSales, bool visibleToMarketDistribution, CancellationToken ct = default);
     Task PostReceiptAsync(PostMovementCommand command, CancellationToken ct = default);
     Task PostDispatchAsync(PostMovementCommand command, CancellationToken ct = default);
 }

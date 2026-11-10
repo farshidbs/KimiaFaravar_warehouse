@@ -13,6 +13,10 @@ html{font-size:16px;min-height:100%}body{margin:0;background:var(--kf-bg);color:
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 /* Persian date picker must remain interactive above Bootstrap modals. */
+.product-visibility-modal .modal-content{max-height:calc(100dvh - 2rem);overflow:hidden}
+.product-visibility-modal .modal-body{min-height:0;overflow-y:auto}
+.product-visibility-modal .modal-header,.product-visibility-modal .modal-footer{flex-shrink:0;background:var(--bs-body-bg,#fff)}
+@media(max-width:800px){.product-visibility-modal .modal-content{max-height:92dvh}}
 .stock-movement-modal .modal-content{max-height:calc(100dvh - 2rem);overflow:hidden}
 .stock-movement-modal .modal-body{min-height:0;overflow-y:auto}
 .stock-movement-modal .modal-header,.stock-movement-modal .modal-footer{flex-shrink:0;background:var(--bs-body-bg,#fff)}

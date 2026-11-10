@@ -1,0 +1,11 @@
+@model KimiaFaravar.Application.Inventory.ProductDto
+<div class="d-flex flex-wrap gap-1 mb-2">
+    @if (Model.VisibleToInternalSales) { <span class="badge text-bg-info">فروش داخلی</span> }
+    @if (Model.VisibleToMarketDistribution) { <span class="badge text-bg-warning">فروش و توزیع بازار</span> }
+    @if (!Model.VisibleToInternalSales && !Model.VisibleToMarketDistribution) { <span class="badge text-bg-secondary">فقط مدیریت</span> }
+</div>
+<button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#productVisibilityModal"
+        data-product-id="@Model.Id" data-product-name="@Model.Name — @Model.Sku"
+        data-internal-sales="@Model.VisibleToInternalSales.ToString().ToLowerInvariant()"
+        data-market-sales="@Model.VisibleToMarketDistribution.ToString().ToLowerInvariant()"
+        aria-label="ویرایش سطح نمایش کالای @Model.Name">ویرایش سطح نمایش</button>

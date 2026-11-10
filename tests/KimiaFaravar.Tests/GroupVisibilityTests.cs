@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace KimiaFaravar.Tests;
 
+[Collection("Json storage")]
 public sealed class GroupVisibilityTests
 {
     [Theory]

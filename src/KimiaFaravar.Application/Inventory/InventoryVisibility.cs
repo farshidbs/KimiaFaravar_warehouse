@@ -29,7 +29,9 @@ public static class InventoryVisibility
             }
         }
 
-        var products = source.Products.Where(product => directlyVisibleGroupIds.Contains(product.ProductGroupId)).ToArray();
+        var products = source.Products.Where(product => directlyVisibleGroupIds.Contains(product.ProductGroupId)
+            && (roleCode == RoleCodes.InternalSales ? product.VisibleToInternalSales
+                : roleCode == RoleCodes.MarketDistribution && product.VisibleToMarketDistribution)).ToArray();
         var productIds = products.Select(product => product.Id).ToHashSet();
         var specifications = source.Specifications.Where(spec => displayedGroupIds.Contains(spec.ProductGroupId)).ToArray();
         var specificationIds = specifications.Select(spec => spec.Id).ToHashSet();

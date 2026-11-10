@@ -91,7 +91,107 @@ document.getElementById("groupVisibilityModal")?.addEventListener("show.bs.modal
     document.getElementById("groupVisibilityMarket").checked = button.dataset.marketSales === "true";
 });
 // Keep the group editor visible after saving its visibility settings.
-if (window.location.hash === "#groups") {
-    const groupTab = document.querySelector('[data-bs-target="#groups"]');
+if (["#groups", "#new-option", "#new-spec", "#catalog-view"].includes(window.location.hash)) {
+    const groupTab = document.querySelector(`[data-bs-target="${window.location.hash}"]`);
     if (groupTab) bootstrap.Tab.getOrCreateInstance(groupTab).show();
 }
+
+document.getElementById("productVisibilityModal")?.addEventListener("show.bs.modal", event => {
+    const button = event.relatedTarget;
+    if (!button) return;
+    document.getElementById("productVisibilityId").value = button.dataset.productId;
+    document.getElementById("productVisibilityName").textContent = button.dataset.productName;
+    document.getElementById("productVisibilityInternal").checked = button.dataset.internalSales === "true";
+    document.getElementById("productVisibilityMarket").checked = button.dataset.marketSales === "true";
+});
+
+(() => {
+    const group = document.getElementById("specification-group");
+    if (!group) return;
+    const rows = document.getElementById("group-specifications-rows");
+    const table = document.getElementById("group-specifications-table");
+    const status = document.getElementById("group-specifications-status");
+    const labels = ["مشخصه", "نوع داده", "گزینه‌ها", "اجباری", "کلید یکتایی", "گروه تعریف‌کننده"];
+    const types = ["متن", "عدد اعشاری", "عدد صحیح", "بله / خیر", "لیست انتخابی"];
+    let pending;
+    async function load() {
+        pending?.abort();
+        const request = new AbortController();
+        pending = request;
+        rows.replaceChildren();
+        table.classList.add("d-none");
+        status.className = "text-muted";
+        if (!group.value) { status.textContent = "گروه را برای مشاهده مشخصات انتخاب کنید."; return; }
+        status.textContent = "در حال دریافت مشخصات گروه...";
+        try {
+            const response = await fetch(`/Catalog/GroupSpecifications?groupId=${encodeURIComponent(group.value)}`, { signal: request.signal });
+            if (response.redirected) { window.location.assign(response.url); return; }
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "دریافت مشخصات ناموفق بود.");
+            if (request.signal.aborted) return;
+            data.forEach(spec => {
+                const row = document.createElement("tr");
+                const values = [spec.name, types[spec.dataType] || "—",
+                    spec.dataType === 4 ? spec.options.map(option => option.value).join("، ") || "بدون گزینه" : "—",
+                    spec.isRequired ? "بله" : "خیر", spec.isVariantKey ? "بله" : "خیر",
+                    `${spec.groupName || "—"}${spec.inherited ? " (ارث‌رسیده)" : ""}`];
+                values.forEach((value, index) => {
+                    const cell = document.createElement("td");
+                    cell.textContent = value;
+                    cell.dataset.label = labels[index];
+                    row.append(cell);
+                });
+                rows.append(row);
+            });
+            table.classList.toggle("d-none", data.length === 0);
+            status.textContent = data.length ? `${data.length} مشخصه برای این گروه` : "برای این گروه مشخصه‌ای تعریف نشده است.";
+        } catch (error) {
+            if (error.name === "AbortError") return;
+            status.className = "text-danger";
+            status.textContent = "دریافت مشخصات ناموفق بود؛ گروه را دوباره انتخاب کنید.";
+        }
+    }
+    group.addEventListener("change", load);
+    document.querySelector('[data-bs-target="#new-spec"]')?.addEventListener("shown.bs.tab", load);
+    load();
+})();
+
+document.getElementById("specification-option-form")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (form.dataset.saving === "true") return;
+    const submit = form.querySelector("button");
+    const feedback = document.getElementById("option-feedback");
+    form.dataset.saving = "true";
+    submit.disabled = true;
+    form.setAttribute("aria-busy", "true");
+    feedback.className = "alert d-none";
+    try {
+        const response = await fetch(form.action, {
+            method: "POST", body: new FormData(form), headers: { "X-Requested-With": "XMLHttpRequest" }
+        });
+        if (response.redirected) { window.location.assign(response.url); return; }
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "ثبت گزینه ناموفق بود.");
+        const cell = document.querySelector(`[data-options-for="${data.specificationId}"]`);
+        if (cell) {
+            cell.querySelector("[data-options-empty]")?.remove();
+            const badge = document.createElement("span");
+            badge.className = "badge bg-light text-dark border me-1";
+            badge.dataset.optionId = data.id;
+            badge.textContent = data.value;
+            cell.append(badge);
+        }
+        form.elements.value.value = "";
+        feedback.textContent = "گزینه جدید ثبت شد و به فهرست اضافه شد.";
+        feedback.className = "alert alert-success";
+        form.elements.value.focus();
+    } catch (error) {
+        feedback.textContent = error.message === "Failed to fetch" ? "ارتباط برقرار نشد؛ دوباره تلاش کنید." : error.message;
+        feedback.className = "alert alert-danger";
+    } finally {
+        submit.disabled = false;
+        form.dataset.saving = "false";
+        form.setAttribute("aria-busy", "false");
+    }
+});
